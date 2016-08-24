@@ -6,6 +6,19 @@ defmodule Greenbar.Test.LowLevelParser do
 
   use ExUnit.Case
 
+  defmacrop assert_structure(nodes, types) do
+    quote bind_quoted: [nodes: nodes, types: types] do
+      assert length(nodes) == length(types)
+      Enum.each(Enum.with_index(nodes), fn({node, i}) ->
+        ct = Enum.at(types, i)
+        unless node.__struct__ == ct do
+          raise %ExUnit.AssertionError{left: node.__struct__,
+                                       right: ct,
+                                       message: "Expected #{inspect ct} but have #{inspect node, pretty: true}"}
+        end end)
+    end
+  end
+
   test "text parses as text" do
     {:ok, template} = Parser.scan_and_parse("This is a test.")
     text_node = Enum.at(template.statements, 0)
@@ -43,6 +56,21 @@ defmodule Greenbar.Test.LowLevelParser do
   test "nested tags are parsed" do
     {:ok, template} = Parser.scan_and_parse(Templates.vms_per_region)
     assert length(template.statements) == 2
+    outer = Enum.at(template.statements, 0)
+    assert outer.tag == "each"
+    assert_structure(outer.body, [Greenbar.Ast.Text,
+                                             Piper.Common.Ast.Variable,
+                                             Greenbar.Ast.Text,
+                                             Greenbar.Ast.Tag,
+                                             Greenbar.Ast.Text])
+    inner = Enum.at(outer.body, 3)
+    assert inner.tag == "each"
+    assert_structure(inner.body, [Greenbar.Ast.Text,
+                                             Piper.Common.Ast.Variable,
+                                             Greenbar.Ast.Text,
+                                             Piper.Common.Ast.Variable,
+                                             Greenbar.Ast.Text])
+
   end
 
 end
