@@ -1,0 +1,2 @@
+defmodule Greenbar do
+end
