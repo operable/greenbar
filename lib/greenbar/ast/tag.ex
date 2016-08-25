@@ -2,7 +2,7 @@ defmodule Greenbar.Ast.TagBody do
 
   defstruct [:statements]
 
-  def new(statements) do
+  def new(statements) when is_list(statements) do
     %__MODULE__{statements: statements}
   end
 
@@ -14,7 +14,8 @@ defmodule Greenbar.Ast.Tag do
 
   defstruct [:tag, :attributes, :body]
 
-  def new(tag, attributes \\ %{}) when is_binary(tag) do
+  def new(tag, attributes \\ [])
+  def new(tag, attributes) when is_binary(tag) and is_list(attributes) do
     attributes = if is_list(attributes) do
       Enum.reduce(attributes, %{}, fn({key, value}, acc) -> Map.put(acc, key, value) end)
     else
@@ -22,6 +23,7 @@ defmodule Greenbar.Ast.Tag do
     end
     %__MODULE__{tag: tag, attributes: attributes}
   end
+
 
   def body(%__MODULE__{}=tag, body) do
     body = strip_leading_newline(body)

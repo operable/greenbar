@@ -17,7 +17,8 @@ defmodule Greenbar.Tags.Each do
       [] ->
         {:halt, nil, child_scope}
       [h|t] ->
-        {:ok, child_scope} = Scoped.set(child_scope, "item", h)
+        var_name = get_attr(attrs, "as") || "item"
+        {:ok, child_scope} = Scoped.set(child_scope, var_name, h)
         {:ok, scope} = set_remaining(scope, t)
         {:ok, child_scope} = Scoped.set_parent(child_scope, scope)
         {:cont, nil, scope, child_scope}
