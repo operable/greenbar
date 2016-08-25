@@ -5,7 +5,6 @@ defmodule Greenbar.Tags.Count do
   def name, do: "count"
 
   def render(attrs, scope) do
-    IO.inspect attrs, pretty: true
     case get_attr(attrs, "var") do
       nil ->
         {:error, "var attribute not set"}
