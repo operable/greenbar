@@ -114,7 +114,7 @@ defmodule Greenbar.Markdown.Inline do
         match = Regex.run(context.rules.br, src, return: :index) ->
         out = renderer.br()
         [ {0, match_len} ] = match
-        convert_each(behead(src, match_len), context, Util.combine(out, result))
+        convert_each(behead(src, match_len), context, Util.combine(result, out))
 
 
         # text
