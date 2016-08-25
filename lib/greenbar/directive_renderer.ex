@@ -9,7 +9,7 @@ defmodule Greenbar.DirectiveRenderer do
 
   def em([src]), do: em(src)
   def em(src) do
-    %{name: "italic", text: src}
+    %{name: "italic", text: extract_text(src)}
   end
   def text([src]), do: text(src)
   def text(src) do
@@ -17,11 +17,11 @@ defmodule Greenbar.DirectiveRenderer do
   end
   def strong([src]), do: strong(src)
   def strong(src) do
-    %{name: "bold", text: src}
+    %{name: "bold", text: extract_text(src)}
   end
   def codespan([src]), do: codespan(src)
   def codespan(src) do
-    %{name: "fixed_width", text: src}
+    %{name: "fixed_width", text: extract_text(src)}
   end
 
   def br() do
@@ -31,5 +31,10 @@ defmodule Greenbar.DirectiveRenderer do
   defp block_to_directive(%Block.Para{lines: lines}, context, _mf) do
     convert(lines, context)
   end
+
+  defp extract_text(src) when is_map(src) do
+    src.text
+  end
+  defp extract_text(src), do: src
 
 end
