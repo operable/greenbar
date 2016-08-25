@@ -27,7 +27,7 @@ template_statements ->
 template_statements ->
   text : [?AST(text):new(?_ES(extract_text('$1')))].
 template_statements ->
-  var_expr : ['$1'].
+  tilde var_expr tilde : ['$2'].
 template_statements ->
   tag_instance template_statements : ['$1'] ++ '$2'.
 template_statements ->
@@ -56,7 +56,7 @@ tag_field_values ->
 tag_field_values ->
   float : extract_value('$1').
 tag_field_values ->
-  text : ?_ES(extract_value('$1')).
+  text : ?AST(text):new(?_ES(extract_value('$1'))).
 tag_field_values ->
   tag_field : ?_ES(extract_value('$1')).
 tag_field_values ->
@@ -66,7 +66,7 @@ tag_field_values ->
 tag_field_values ->
   float comma tag_field_values : [extract_value('$1')] ++ '$3'.
 tag_field_values ->
-  text comma tag_field_values : [?_ES(extract_value('$1'))] ++ '$3'.
+  text comma tag_field_values : [?AST(text):new(?_ES(extract_value('$1')))] ++ '$3'.
 
 var_expr ->
   var : ?AST(variable):new(?_ES(extract_value('$1'))).

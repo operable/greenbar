@@ -40,7 +40,7 @@ defmodule Greenbar.Test.LowLevelParser do
     tag_node = Enum.at(template.statements, 0)
     assert tag_node.__struct__ == Greenbar.Ast.Tag
     assert tag_node.tag == "title"
-    assert tag_node.attributes == %{"text" => "Hello"}
+    assert tag_node.attributes == %{"text" => %Greenbar.Ast.Text{text: "Hello"}}
   end
 
   test "tags w/bodies are parsed" do
@@ -59,18 +59,25 @@ defmodule Greenbar.Test.LowLevelParser do
     outer = Enum.at(template.statements, 0)
     assert outer.tag == "each"
     assert_structure(outer.body, [Greenbar.Ast.Text,
-                                             Piper.Common.Ast.Variable,
-                                             Greenbar.Ast.Text,
-                                             Greenbar.Ast.Tag,
-                                             Greenbar.Ast.Text])
+                                  Piper.Common.Ast.Variable,
+                                  Greenbar.Ast.Text,
+                                  Greenbar.Ast.Tag,
+                                  Greenbar.Ast.Text])
     inner = Enum.at(outer.body, 3)
     assert inner.tag == "each"
     assert_structure(inner.body, [Greenbar.Ast.Text,
-                                             Piper.Common.Ast.Variable,
-                                             Greenbar.Ast.Text,
-                                             Piper.Common.Ast.Variable,
-                                             Greenbar.Ast.Text])
+                                  Piper.Common.Ast.Variable,
+                                  Greenbar.Ast.Text,
+                                  Piper.Common.Ast.Variable,
+                                  Greenbar.Ast.Text])
 
+  end
+
+  test "solo variables are parsed" do
+    {:ok, template} = Parser.scan_and_parse(Templates.solo_variable)
+    assert_structure(template.statements, [Greenbar.Ast.Text,
+                                           Piper.Common.Ast.Variable,
+                                           Greenbar.Ast.Text])
   end
 
 end

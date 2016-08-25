@@ -20,4 +20,11 @@ defmodule Greenbar.Test.Support.Templates do
 """
   end
 
+  def solo_variable do
+    """
+This is a test.
+~$item~.
+"""
+  end
+
 end
