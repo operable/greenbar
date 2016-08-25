@@ -7,21 +7,27 @@ defmodule Greenbar.DirectiveRenderer do
     :lists.flatten(mapper.(blocks, &block_to_directive(&1, context, mapper)))
   end
 
-  def em([src]), do: em(src)
   def em(src) do
     %{name: "italic", text: extract_text(src)}
   end
+
   def text([src]), do: text(src)
   def text(src) do
     %{name: "text", text: src}
   end
-  def strong([src]), do: strong(src)
+
   def strong(src) do
     %{name: "bold", text: extract_text(src)}
   end
-  def codespan([src]), do: codespan(src)
+
   def codespan(src) do
     %{name: "fixed_width", text: extract_text(src)}
+  end
+
+  def link(href, text), do: %{name: "href", url: href, text: text}
+
+  def strikethrough(src) do
+    %{name: "strikethrough", text: extract_text(src)}
   end
 
   def br() do
@@ -31,7 +37,11 @@ defmodule Greenbar.DirectiveRenderer do
   defp block_to_directive(%Block.Para{lines: lines}, context, _mf) do
     convert(lines, context)
   end
+  defp block_to_directive(%Block.Code{lines: lines}, _context, _mf) do
+    %{name: "fixed_width", text: Enum.join(lines, "\n")}
+  end
 
+  defp extract_text([src]), do: extract_text(src)
   defp extract_text(src) when is_map(src) do
     src.text
   end

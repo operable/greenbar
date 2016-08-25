@@ -23,13 +23,16 @@ defmodule Greenbar.DirectivesGenerator do
   defp combine_outputs(output, {globals, current}) when is_binary(output) do
     {globals, :erlang.iolist_to_binary([current, output])}
   end
-  defp combine_outputs(output, {globals, current}) do
+  defp combine_outputs(output, {globals, current}) when is_map(output) do
     globals = if current != "" do
       [current|globals]
     else
       globals
     end
     {[output|globals], ""}
+  end
+  defp combine_outputs(output, {globals, current}) do
+    {globals, :erlang.iolist_to_binary([current, Poison.encode!(output)])}
   end
 
 end
