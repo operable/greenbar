@@ -23,7 +23,7 @@ template_body ->
 template_statements ->
   tag_instance : '$1'.
 template_statements ->
-  tag_instance template_statements tag_end : ?AST(tag):body('$1', ?AST(tag_body):new('$2')).
+  tag_instance template_statements tag_end : ?AST(tag):body('$1', ?AST(tag_body):new(ensure_list('$2'))).
 template_statements ->
   text : ?AST(text):new(?_ES(extract_text('$1'))).
 template_statements ->
@@ -31,7 +31,7 @@ template_statements ->
 template_statements ->
   tag_instance template_statements : combine('$1', '$2').
 template_statements ->
-  tag_instance template_statements tag_end template_statements : combine(?AST(tag):body('$1', ?AST(tag_body):new('$2')), '$4').
+  tag_instance template_statements tag_end template_statements : combine(?AST(tag):body('$1', ?AST(tag_body):new(ensure_list('$2'))), '$4').
 
 template_statements ->
   text template_statements : combine(?AST(text):new(?_ES(extract_text('$1'))), '$2').
