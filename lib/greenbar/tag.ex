@@ -5,7 +5,7 @@ defmodule Greenbar.Tag do
   @type tag_attrs :: Map.t
   @type tag_output :: String.t | nil
 
-  @type continue_response :: {:cont, tag_output, Scoped.t}
+  @type continue_response :: {:cont, tag_output, Scoped.t, Scoped.t}
   @type done_response :: {:halt, tag_output, Scoped.t}
   @type error_response :: {:error, term}
 

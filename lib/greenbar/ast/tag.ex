@@ -1,14 +1,16 @@
-defmodule Greenbar.Ast.Text do
+defmodule Greenbar.Ast.TagBody do
 
-  defstruct [:text]
+  defstruct [:statements]
 
-  def new(text) when is_binary(text) do
-    %__MODULE__{text: text}
+  def new(statements) do
+    %__MODULE__{statements: statements}
   end
 
 end
 
 defmodule Greenbar.Ast.Tag do
+
+  alias Greenbar.Ast.TagBody
 
   defstruct [:tag, :attributes, :body]
 
@@ -22,10 +24,20 @@ defmodule Greenbar.Ast.Tag do
   end
 
   def body(%__MODULE__{}=tag, body) do
+    body = strip_leading_newline(body)
     %{tag | body: body}
   end
 
   def body?(%__MODULE__{body: nil}), do: false
   def body?(%__MODULE__{}), do: true
+
+  defp strip_leading_newline(%TagBody{statements: [%Greenbar.Ast.Text{text: text}|t]}=body) do
+    case String.trim(text) do
+      "" ->
+        %{body | statements: t}
+      _ ->
+        body
+    end
+  end
 
 end

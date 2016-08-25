@@ -1,4 +1,5 @@
-defimpl Greenbar.Exec.Interpret, for: Greenbar.Ast.Template do
+defimpl Greenbar.Exec.Interpret, for: [Greenbar.Ast.Template,
+                                       Greenbar.Ast.TagBody] do
 
   alias Greenbar.Exec.Interpret
 

@@ -10,7 +10,8 @@ defmodule Greenbar do
       {:ok, parsed} ->
         case Greenbar.Exec.Interpret.run(parsed, engine, scope) do
           {:ok, outputs, _} ->
-            {:ok, :erlang.iolist_to_binary(outputs)}
+            IO.puts "#{String.trim_trailing(:erlang.iolist_to_binary(outputs))}"
+            :ok
           error ->
             error
         end

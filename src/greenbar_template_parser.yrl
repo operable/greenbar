@@ -23,7 +23,7 @@ template_body ->
 template_statements ->
   tag_instance : ['$1'].
 template_statements ->
-  tag_instance template_statements tag_end : [?AST(tag):body('$1', '$2')].
+  tag_instance template_statements tag_end : [?AST(tag):body('$1', ?AST(tag_body):new('$2'))].
 template_statements ->
   text : [?AST(text):new(?_ES(extract_text('$1')))].
 template_statements ->
@@ -31,7 +31,8 @@ template_statements ->
 template_statements ->
   tag_instance template_statements : ['$1'] ++ '$2'.
 template_statements ->
-  tag_instance template_statements tag_end template_statements : [?AST(tag):body('$1', '$2')] ++ '$4'.
+  tag_instance template_statements tag_end template_statements : [?AST(tag):body('$1', ?AST(tag_body):new('$2'))] ++ '$4'.
+
 template_statements ->
   text template_statements : [?AST(text):new(?_ES(extract_text('$1')))] ++ '$2'.
 template_statements ->
@@ -126,6 +127,8 @@ ast(text) ->
   'Elixir.Greenbar.Ast.Text';
 ast(tag) ->
   'Elixir.Greenbar.Ast.Tag';
+ast(tag_body) ->
+  'Elixir.Greenbar.Ast.TagBody';
 ast(variable) ->
   'Elixir.Piper.Common.Ast.Variable'.
 
@@ -141,13 +144,3 @@ prettify_error(Err) when is_binary(Err) ->
 
 sane_error(Mod, Error) ->
   list_to_binary(Mod:format_error(Error)).
-
-% cleanup_char_codes([], Accum) -> lists:reverse(Accum);
-% cleanup_char_codes([C|T], Accum) when is_integer(C) ->
-%   cleanup_char_codes(T, [C|Accum]);
-% cleanup_char_codes([[C]|T], Accum) ->
-%   cleanup_char_codes(T, [list_to_integer(C)|Accum]);
-% cleanup_char_codes([C|T], Accum) when is_list(C) ->
-%   Accum1 = lists:reverse(cleanup_char_codes(C, Accum)),
-%   cleanup_char_codes(T, Accum1);
-% cleanup_char_codes([C|T], Accum) -> cleanup_char_codes(T, [C|Accum]).
