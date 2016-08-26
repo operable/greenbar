@@ -22,4 +22,15 @@ defmodule Greenbar.EvalTest do
                                             "text", "newline",  # id = "ghi"
                                             "text", "newline"]) # This has been a test.
   end
+
+  test "parent/child scopes work" do
+    data = %{"items" => ["a","b","c"]}
+    [result] = Greenbar.eval(Templates.parent_child_scopes, data)
+    Assertions.directive_structure(result, ["text", "newline",  # Header
+                                            "text", "newline",  # a
+                                            "text", "newline",  # b
+                                            "text", "newline",  # c
+                                            "text", "newline"]) # Footer
+  end
+
 end

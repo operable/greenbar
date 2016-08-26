@@ -40,4 +40,14 @@ This has been a test.
 """
   end
 
+  def parent_child_scopes do
+    """
+This is a test. There are ~count var=$items~ items.
+~each var=$items~
+  ~$item~
+~end~
+
+There are ~count var=$items~ items.
+"""
+  end
 end

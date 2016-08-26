@@ -11,14 +11,14 @@ defmodule Greenbar.Tags.Each do
   def name, do: "each"
 
   def render(attrs, scope) do
-    child_scope = Scope.empty_scope()
     case get_remaining(attrs, scope) do
       nil ->
         {:error, "var attribute not set"}
       [] ->
-        {:halt, nil, child_scope}
+        {:halt, nil, scope}
       [h|t] ->
         var_name = get_attr(attrs, "as") || "item"
+        child_scope = Scope.empty_scope()
         {:ok, child_scope} = Scoped.set(child_scope, var_name, h)
         {:ok, scope} = set_remaining(scope, t)
         {:ok, child_scope} = Scoped.set_parent(child_scope, scope)
