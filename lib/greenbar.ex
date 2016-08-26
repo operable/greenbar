@@ -19,7 +19,7 @@ defmodule Greenbar do
     end
   end
 
-  defp expand_tags(parsed, engine, scope) do
+  def expand_tags(parsed, engine, scope) do
     scope = Scope.from_map(scope)
     case Greenbar.Exec.Interpret.run(parsed, engine, scope) do
       {:ok, outputs, _} ->

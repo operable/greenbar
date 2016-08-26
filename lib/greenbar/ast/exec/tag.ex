@@ -13,7 +13,6 @@ defimpl Greenbar.Exec.Interpret, for: Greenbar.Ast.Tag do
   end
 
   defp run_tag(tag, engine, scope) do
-    IO.inspect tag.attributes, pretty: true
     case run_attributes(Map.keys(tag.attributes), tag.attributes, engine, scope, %{}) do
       {:ok, attributes, scope} ->
         case Engine.get_tag(engine, tag.tag) do

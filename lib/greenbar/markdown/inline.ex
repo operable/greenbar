@@ -5,7 +5,7 @@ defmodule Greenbar.Markdown.Inline do
   renderer.
   """
 
-  import Earmark.Helpers, except: [behead: 2]
+  import Earmark.Helpers, except: [behead: 2, escape: 2]
   import Earmark.Helpers.StringHelpers, only: [behead: 2]
   alias Earmark.Context
   alias Greenbar.Util
@@ -23,7 +23,6 @@ defmodule Greenbar.Markdown.Inline do
 
   defp convert_each(src, context, result) do
     renderer = context.options.renderer
-
     cond do
       # escape
       match = Regex.run(context.rules.escape, src) ->
@@ -123,7 +122,8 @@ defmodule Greenbar.Markdown.Inline do
         out = renderer.text(escape(context.options.do_smartypants.(match)))
         result = convert_each(behead(src, match), context, Util.combine(result, out))
         result
-
+      true ->
+        raise "WTF! #{src}"
     end
   end
 
@@ -188,11 +188,12 @@ defmodule Greenbar.Markdown.Inline do
   end
 
   defp reference_link(context, match, alt_text, id) do
+    renderer = context.options.renderer
     id = id |> replace(~r{\s+}, " ") |> String.downcase
 
     case Map.fetch(context.links, id) do
       {:ok, link } -> output_image_or_link(context, match, alt_text, link.url, link.title)
-      _            -> match
+      _            -> renderer.text(match)
       end
   end
 
@@ -272,7 +273,8 @@ defmodule Greenbar.Markdown.Inline do
       ]
       if options.breaks do
         break_updates = [
-          br:    ~r{^ *\n(?!\s*$)},
+          br: ~r/\n|\r\n/,
+#          br:    ~r{^ *\n(?!\s*$)},
           text:  ~r{^[\s\S]+?(?=[\\<!\[_*`~]|https?://| *\n|$)}
          ]
          Keyword.merge(rules, break_updates)
@@ -294,4 +296,6 @@ defmodule Greenbar.Markdown.Inline do
     Keyword.merge(basic_rules(), rule_updates)
     |> Enum.into(%{})
   end
-  end
+
+  defp escape(text, _), do: text
+end

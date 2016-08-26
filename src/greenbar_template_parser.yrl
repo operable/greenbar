@@ -6,7 +6,7 @@ lbracket rbracket dot integer float comma tilde.
 Nonterminals
 
 template template_body template_statements tag_instance tag_fields tag_field_values
-var_expr var_ops.
+var_expr var_ops number.
 
 Rootsymbol template.
 
@@ -25,7 +25,7 @@ template_statements ->
 template_statements ->
   tag_instance template_statements tag_end : ?AST(tag):body('$1', ?AST(tag_body):new(ensure_list('$2'))).
 template_statements ->
-  text : ?AST(text):new(?_ES(extract_text('$1'))).
+  text : ?AST(text):new(?_ES(extract_value('$1'))).
 template_statements ->
   tilde var_expr tilde : '$2'.
 template_statements ->
@@ -34,7 +34,7 @@ template_statements ->
   tag_instance template_statements tag_end template_statements : combine(?AST(tag):body('$1', ?AST(tag_body):new(ensure_list('$2'))), '$4').
 
 template_statements ->
-  text template_statements : combine(?AST(text):new(?_ES(extract_text('$1'))), '$2').
+  text template_statements : combine(?AST(text):new(?_ES(extract_value('$1'))), '$2').
 template_statements ->
   tilde var_expr tilde template_statements : combine('$2', '$4').
 
@@ -53,9 +53,7 @@ tag_fields ->
 tag_field_values ->
   var_expr : '$1'.
 tag_field_values ->
-  integer : extract_value('$1').
-tag_field_values ->
-  float : extract_value('$1').
+  number : '$1'.
 tag_field_values ->
   text : ?AST(text):new(?_ES(extract_value('$1'))).
 tag_field_values ->
@@ -63,9 +61,7 @@ tag_field_values ->
 tag_field_values ->
   var_expr comma tag_field_values : combine('$1', '$3').
 tag_field_values ->
-  integer comma tag_field_values : combine(extract_value('$1'), '$3').
-tag_field_values ->
-  float comma tag_field_values : combine(extract_value('$1'), '$3').
+  number comma tag_field_values : combine('$1', '$3').
 tag_field_values ->
   text comma tag_field_values : combine(?AST(text):new(?_ES(extract_value('$1'))), '$3').
 
@@ -82,6 +78,11 @@ var_ops ->
   lbracket integer rbracket var_ops : combine({index, extract_value('$2')}, '$4').
 var_ops ->
   dot tag_field var_ops : combine({key, ?_ES(extract_value('$2'))}, '$3').
+
+number ->
+  integer : ?AST(integer):new('$1').
+number ->
+  float : ?AST(float):new('$1').
 
 Erlang code.
 
@@ -113,24 +114,24 @@ tag_name({tag, _, Name}) -> Name.
 
 %% tag_field_name({tag_field, _, Name}) -> Name.
 
-extract_value({float, _, Text}) -> list_to_float(Text);
-extract_value({integer, _, Text}) -> list_to_integer(Text);
 extract_value({var, _, [$$|Name]}) -> Name;
 extract_value({_, _, Text}) -> Text.
-
-extract_text({text, _, Text}) -> Text.
 
 %% AST helper functions
 ast(template) ->
   'Elixir.Greenbar.Ast.Template';
 ast(text) ->
-  'Elixir.Greenbar.Ast.Text';
+  'Elixir.Piper.Common.Ast.String';
 ast(tag) ->
   'Elixir.Greenbar.Ast.Tag';
 ast(tag_body) ->
   'Elixir.Greenbar.Ast.TagBody';
 ast(variable) ->
-  'Elixir.Piper.Common.Ast.Variable'.
+  'Elixir.Piper.Common.Ast.Variable';
+ast(integer) ->
+  'Elixir.Piper.Common.Ast.Integer';
+ast(float) ->
+  'Elixir.Piper.Common.Ast.Float'.
 
 convert_string(Str) when is_list(Str) -> list_to_binary(Str);
 convert_string(Str) when is_binary(Str) -> Str.

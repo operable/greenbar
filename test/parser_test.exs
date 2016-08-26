@@ -1,37 +1,23 @@
-defmodule Greenbar.Test.LowLevelParser do
+defmodule Greenbar.ParserTest do
 
   alias :greenbar_template_parser, as: Parser
-  alias Greenbar.Test.Support.Templates
+
+  use Greenbar.Test.Support.TestCase
   alias Greenbar.Ast.Tag
-
-  use ExUnit.Case
-
-  defmacrop assert_structure(nodes, types) do
-    quote bind_quoted: [nodes: nodes, types: types] do
-      assert Enum.count(nodes) == Enum.count(types)
-      Enum.each(Enum.with_index(nodes), fn({node, i}) ->
-        ct = Enum.at(types, i)
-        unless node.__struct__ == ct do
-          raise %ExUnit.AssertionError{left: node.__struct__,
-                                       right: ct,
-                                       message: "Expected #{inspect ct} but have #{inspect node, pretty: true}"}
-        end end)
-    end
-  end
 
   test "text parses as text" do
     {:ok, template} = Parser.scan_and_parse("This is a test.")
     text_node = Enum.at(template, 0)
-    assert text_node.__struct__ == Greenbar.Ast.Text
-    assert text_node.text == "This is a test."
+    assert text_node.__struct__ == Piper.Common.Ast.String
+    assert text_node.value == "This is a test."
   end
 
   test "newlines are included in text" do
     {:ok, template} = Parser.scan_and_parse("This is a \ntest.\n")
     assert Enum.count(template) == 1
     text_node = Enum.at(template, 0)
-    assert text_node.__struct__ == Greenbar.Ast.Text
-    assert text_node.text == "This is a \ntest.\n"
+    assert text_node.__struct__ == Piper.Common.Ast.String
+    assert text_node.value == "This is a \ntest.\n"
   end
 
   test "tags w/o bodies are parsed" do
@@ -40,7 +26,7 @@ defmodule Greenbar.Test.LowLevelParser do
     tag_node = Enum.at(template, 0)
     assert tag_node.__struct__ == Greenbar.Ast.Tag
     assert tag_node.tag == "title"
-    assert tag_node.attributes == %{"text" => %Greenbar.Ast.Text{text: "Hello"}}
+    assert tag_node.attributes == %{"text" => %Piper.Common.Ast.String{value: "Hello", col: 0, line: 0}}
   end
 
   test "tags w/bodies are parsed" do
@@ -49,7 +35,7 @@ defmodule Greenbar.Test.LowLevelParser do
     tag_node = Enum.at(template, 0)
     assert tag_node.__struct__ == Greenbar.Ast.Tag
     assert tag_node.tag == "each"
-    assert tag_node.attributes["items"] != nil
+    assert tag_node.attributes["var"] != nil
     assert Tag.body?(tag_node)
   end
 
@@ -58,26 +44,26 @@ defmodule Greenbar.Test.LowLevelParser do
     assert Enum.count(template) == 2
     outer = Enum.at(template, 0)
     assert outer.tag == "each"
-    assert_structure(outer.body, [Greenbar.Ast.Text,
+    Assertions.ast_structure(outer.body, [Piper.Common.Ast.String,
                                   Piper.Common.Ast.Variable,
-                                  Greenbar.Ast.Text,
+                                  Piper.Common.Ast.String,
                                   Greenbar.Ast.Tag,
-                                  Greenbar.Ast.Text])
+                                  Piper.Common.Ast.String])
     inner = Enum.at(outer.body, 3)
     assert inner.tag == "each"
-    assert_structure(inner.body, [Greenbar.Ast.Text,
+    Assertions.ast_structure(inner.body, [Piper.Common.Ast.String,
                                   Piper.Common.Ast.Variable,
-                                  Greenbar.Ast.Text,
+                                  Piper.Common.Ast.String,
                                   Piper.Common.Ast.Variable,
-                                  Greenbar.Ast.Text])
+                                  Piper.Common.Ast.String])
 
   end
 
   test "solo variables are parsed" do
     {:ok, template} = Parser.scan_and_parse(Templates.solo_variable)
-    assert_structure(template, [Greenbar.Ast.Text,
+    Assertions.ast_structure(template, [Piper.Common.Ast.String,
                                            Piper.Common.Ast.Variable,
-                                           Greenbar.Ast.Text])
+                                           Piper.Common.Ast.String])
   end
 
 end

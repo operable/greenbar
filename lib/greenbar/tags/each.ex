@@ -6,6 +6,7 @@ defmodule Greenbar.Tags.Each do
 
   alias Piper.Common.Scope.Scoped
   alias Piper.Common.Scope
+  alias Piper.Common.Ast.Variable
 
   def name, do: "each"
 
@@ -28,7 +29,16 @@ defmodule Greenbar.Tags.Each do
   defp get_remaining(attrs, scope) do
     case Scoped.lookup(scope, @remaining_key) do
       {:not_found, _} ->
-        get_attr(attrs, "var")
+        case get_attr(attrs, "var") do
+          {:not_found, _} ->
+            nil
+          %Variable{value: value} ->
+            value
+          value ->
+            value
+        end
+      {:ok, %Variable{value: value}} ->
+        value
       {:ok, value} ->
         value
     end

@@ -2,7 +2,7 @@ defmodule Greenbar.Test.Support.Templates do
 
   def vm_list do
     """
-~each items=$vms~
+~each var=$vms~
 ~$item.name~
 ~end~
 """
@@ -11,9 +11,9 @@ defmodule Greenbar.Test.Support.Templates do
 
   def vms_per_region do
     """
-~each items=$regions~
+~each var=$regions~
 ~$item.name~
-  ~each items=$item.vms~
+  ~each var=$item.vms~
     ~$item.name~ (~$item.id~)
   ~end~
 ~end~
@@ -24,6 +24,19 @@ defmodule Greenbar.Test.Support.Templates do
     """
 This is a test.
 ~$item~.
+"""
+  end
+
+  def newlines do
+    """
+This is a test.
+
+~each var=$items~
+  ~$item.id~
+
+~end~
+
+This has been a test.
 """
   end
 

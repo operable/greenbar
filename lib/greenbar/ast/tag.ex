@@ -10,8 +10,6 @@ end
 
 defmodule Greenbar.Ast.Tag do
 
-  alias Greenbar.Ast.TagBody
-
   defstruct [:tag, :attributes, :body]
 
   def new(tag, attributes \\ [])
@@ -26,20 +24,10 @@ defmodule Greenbar.Ast.Tag do
 
 
   def body(%__MODULE__{}=tag, body) do
-    body = strip_leading_newline(body)
     %{tag | body: body}
   end
 
   def body?(%__MODULE__{body: nil}), do: false
   def body?(%__MODULE__{}), do: true
-
-  defp strip_leading_newline(%TagBody{statements: [%Greenbar.Ast.Text{text: text}|t]}=body) do
-    case String.trim(text) do
-      "" ->
-        %{body | statements: t}
-      _ ->
-        body
-    end
-  end
 
 end
