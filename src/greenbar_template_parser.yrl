@@ -114,6 +114,8 @@ tag_name({tag, _, Name}) -> Name.
 
 %% tag_field_name({tag_field, _, Name}) -> Name.
 
+extract_value({float, _, Text}) -> list_to_float(Text);
+extract_value({integer, _, Text}) -> list_to_integer(Text);
 extract_value({var, _, [$$|Name]}) -> Name;
 extract_value({_, _, Text}) -> Text.
 

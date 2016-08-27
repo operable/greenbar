@@ -33,4 +33,16 @@ defmodule Greenbar.EvalTest do
                                             "text", "newline"]) # Footer
   end
 
+  test "indexing works" do
+    data = %{"things" => [%{"id" => 1,
+                            "name" => "First"},
+                          %{"id" => 2,
+                            "name" => "Second"}]}
+    [directives] = Greenbar.eval(Templates.explicit_indexing, data)
+    assert [%{name: "text", text: "Here&#39;s the first thing&#39;s ID:"},
+            %{name: "newline", text: "\n"},
+            %{name: "text", text: "1"},
+            %{name: "newline"}] == directives
+  end
+
 end

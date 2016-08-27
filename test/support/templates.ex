@@ -50,4 +50,12 @@ This is a test. There are ~count var=$items~ items.
 There are ~count var=$items~ items.
 """
   end
+
+  def explicit_indexing do
+    """
+    Here's the first thing's ID:
+    ~$things[0].id~
+    """
+  end
+
 end
