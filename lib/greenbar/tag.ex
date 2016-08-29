@@ -21,14 +21,7 @@ defmodule Greenbar.Tag do
   end
 
   def get_attr(attrs, name) do
-    case Map.get(attrs, name) do
-      nil ->
-        nil
-      value when is_list(value) ->
-        Enum.at(value, 0)
-      value ->
-        value
-    end
+    Map.get(attrs, name)
   end
 
 end

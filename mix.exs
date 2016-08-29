@@ -13,7 +13,8 @@ defmodule Greenbar.Mixfile do
   end
 
   def application do
-    [applications: [:logger]]
+    [applications: [:crypto,
+                    :logger]]
   end
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]

@@ -1,31 +1,15 @@
 defmodule Greenbar do
 
-  alias Greenbar.Engine
-  alias Greenbar.DirectivesGenerator
-  alias Piper.Common.Scope
+  alias Greenbar.Template
 
-  def eval(template, scope \\ %{}) do
-    {:ok, engine} = Engine.default()
-    case :greenbar_template_parser.scan_and_parse(template) do
+  def compile!(name, source, opts \\ []) do
+    case :gb_parser.scan_and_parse(source) do
       {:ok, parsed} ->
-        case expand_tags(parsed, engine, scope) do
-          {:ok, outputs} ->
-            DirectivesGenerator.generate(outputs)
-          error ->
-            error
-        end
-      error ->
-        error
-    end
-  end
-
-  def expand_tags(parsed, engine, scope) do
-    scope = Scope.from_map(scope)
-    case Greenbar.Exec.Interpret.run(parsed, engine, scope) do
-      {:ok, outputs, _} ->
-        {:ok, :lists.flatten(outputs)}
-      error ->
-        error
+        template = Template.compile!(name, parsed, opts)
+        hash = :crypto.hash(:sha256, source) |> Base.encode16(case: :lower)
+        %{template | hash: hash, source: source}
+      {:error, reason} ->
+        raise Greenbar.CompileError, message: reason
     end
   end
 
