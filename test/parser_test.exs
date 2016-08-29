@@ -1,69 +1,53 @@
 defmodule Greenbar.ParserTest do
 
-  alias :greenbar_template_parser, as: Parser
+  alias :gb_parser, as: Parser
 
   use Greenbar.Test.Support.TestCase
-  alias Greenbar.Ast.Tag
 
   test "text parses as text" do
     {:ok, template} = Parser.scan_and_parse("This is a test.")
-    text_node = Enum.at(template, 0)
-    assert text_node.__struct__ == Piper.Common.Ast.String
-    assert text_node.value == "This is a test."
+    {:text, "This is a test."} = Enum.at(template, 0)
   end
 
-  test "newlines are included in text" do
+  test "newlines get their own parse nodes" do
     {:ok, template} = Parser.scan_and_parse("This is a \ntest.\n")
-    assert Enum.count(template) == 1
+    assert Enum.count(template) == 4
     text_node = Enum.at(template, 0)
-    assert text_node.__struct__ == Piper.Common.Ast.String
-    assert text_node.value == "This is a \ntest.\n"
+    assert text_node == {:text, "This is a "}
+    newline_node = Enum.at(template, 1)
+    assert newline_node == :eol
   end
 
   test "tags w/o bodies are parsed" do
-    {:ok, template} = Parser.scan_and_parse("~title text='Hello' ~")
+    {:ok, template} = Parser.scan_and_parse("~title text=\"Hello\" ~")
     assert Enum.count(template) == 1
-    tag_node = Enum.at(template, 0)
-    assert tag_node.__struct__ == Greenbar.Ast.Tag
-    assert tag_node.tag == "title"
-    assert tag_node.attributes == %{"text" => %Piper.Common.Ast.String{value: "Hello", col: 0, line: 0}}
+    {:tag, "title", attrs, nil} = Enum.at(template, 0)
+    assert [{:assign_tag_attr, "text", {:string, 1, "\"Hello\""}}] == attrs
   end
 
   test "tags w/bodies are parsed" do
     {:ok, template} = Parser.scan_and_parse(Templates.vm_list)
     assert Enum.count(template) == 2
-    tag_node = Enum.at(template, 0)
-    assert tag_node.__struct__ == Greenbar.Ast.Tag
-    assert tag_node.tag == "each"
-    assert tag_node.attributes["var"] != nil
-    assert Tag.body?(tag_node)
+    {:tag, "each", attrs, body} = Enum.at(template, 0)
+    assert [{:assign_tag_attr, "var", {:var, "vms", nil}}] == attrs
+    assert [{:var, "item", [key: "name"]}, :eol] == body
   end
 
   test "nested tags are parsed" do
     {:ok, template} = Parser.scan_and_parse(Templates.vms_per_region)
     assert Enum.count(template) == 2
-    outer = Enum.at(template, 0)
-    assert outer.tag == "each"
-    Assertions.ast_structure(outer.body, [Piper.Common.Ast.String,
-                                  Piper.Common.Ast.Variable,
-                                  Piper.Common.Ast.String,
-                                  Greenbar.Ast.Tag,
-                                  Piper.Common.Ast.String])
-    inner = Enum.at(outer.body, 3)
-    assert inner.tag == "each"
-    Assertions.ast_structure(inner.body, [Piper.Common.Ast.String,
-                                  Piper.Common.Ast.Variable,
-                                  Piper.Common.Ast.String,
-                                  Piper.Common.Ast.Variable,
-                                  Piper.Common.Ast.String])
-
+    {:tag, "each", attrs, body} = Enum.at(template, 0)
+    assert [{:assign_tag_attr, "var", {:var, "regions", nil}}] == attrs
+    assert {:var, "item", [key: "name"]} = Enum.at(body, 0)
+    {:tag, "each", attrs, body} = Enum.at(body, 3)
+    assert [{:assign_tag_attr, "var", {:var, "item", [key: "vms"]}}] == attrs
+    assert [{:text, "    "}, {:var, "item", [key: "name"]}, {:text, " ("},
+            {:var, "item", [key: "id"]}, {:text, ")"}, :eol, {:text, "  "}] == body
   end
 
   test "solo variables are parsed" do
     {:ok, template} = Parser.scan_and_parse(Templates.solo_variable)
-    Assertions.ast_structure(template, [Piper.Common.Ast.String,
-                                           Piper.Common.Ast.Variable,
-                                           Piper.Common.Ast.String])
+    [{:text, "This is a test."}, :eol, {:var, "item", nil}, {:text, "."}, :eol] = template
   end
 
 end

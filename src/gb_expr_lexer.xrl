@@ -3,7 +3,7 @@ Definitions.
 EXPR_END                = end
 INTEGER                 = [0-9]+
 FLOAT                   = [0-9]+\.[0-9]+
-STRING                  = "(\\\^.|\\.|[^"])"
+STRING                  = "(\\\^.|\\.|[^"])*"
 VAR                     = \$[a-zA-Z][a-zA-Z0-9_]*
 EXPR_NAME               = [a-zA-Z][a-zA-Z0-9_]*
 ASSIGN                  = \=

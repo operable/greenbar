@@ -31,16 +31,11 @@ defmodule Greenbar.DirectiveRenderer do
   end
 
   def br() do
-    %{name: "newline", text: "\n"}
+    %{name: "newline"}
   end
 
   defp block_to_directive(%Block.Para{lines: lines}, context, _mf) do
-    case convert(lines, context) do
-      result when is_list(result) ->
-        result ++ [%{name: "newline"}]
-      result ->
-        result
-    end
+    convert(lines, context)
   end
   defp block_to_directive(%Block.Code{lines: lines}, _context, _mf) do
     %{name: "fixed_width", text: Enum.join(lines, "\n")}

@@ -93,7 +93,7 @@ defmodule Greenbar.Runtime do
   def combine_text(v, acc), do: [v|acc]
 
   def stringify_value(nil), do: ""
-  def stringify_value(value) when is_list(value) or is_map(value), do: Poison.encode(value)
+  def stringify_value(value) when is_list(value) or is_map(value), do: Poison.encode!(value)
   def stringify_value(value) when is_binary(value), do: value
   def stringify_value(value), do: "#{value}"
 

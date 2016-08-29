@@ -17,7 +17,7 @@ defmodule Greenbar.Generator do
   end
   def emit(:eol) do
     quote do
-      buffer = [%{name: :newline}|buffer]
+      buffer = [%{name: :eol}|buffer]
     end
   end
   def emit({:var, name, nil}) do

@@ -35,7 +35,6 @@ defmodule Greenbar.Tags.Each do
           %Variable{value: value} ->
             value
           value ->
-            IO.inspect value
             value
         end
       {:ok, %Variable{value: value}} ->

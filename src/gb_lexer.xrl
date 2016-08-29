@@ -1,6 +1,6 @@
 Definitions.
 
-TEMPLATE_EXPR           = ~(\\\^.|\\.|[^~])+~
+TEMPLATE_EXPR           = ~(\\~|"|[^~])+~
 COMMENT                 = #(.)*(\n|\r\n)
 TEXT                    = (\\#|\\~|[^#~\r\n])+
 EOL                     = (\n|\r\n)

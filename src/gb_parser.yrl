@@ -26,7 +26,7 @@ template_exprs ->
 template_exprs ->
   expr_name tag_attrs : make_tag(value_from('$1'), '$2').
 template_exprs ->
-  expr_name tag_attrs eol template_exprs expr_end : make_tag(value_from('$1'), '$2', '$4').
+  expr_name tag_attrs template_exprs expr_end : make_tag(value_from('$1'), '$2', drop_leading_eol('$4')).
 template_exprs ->
   var_expr : '$1'.
 template_exprs ->
@@ -38,7 +38,7 @@ template_exprs ->
 template_exprs ->
   expr_name tag_attrs template_exprs : combine(make_tag(value_from('$1'), '$2'), '$3').
 template_exprs ->
-  expr_name tag_attrs eol template_exprs expr_end template_exprs : combine(make_tag(value_from('$1'), '$2', '$4'), '$6').
+  expr_name tag_attrs template_exprs expr_end template_exprs : combine(make_tag(value_from('$1'), '$2', drop_leading_eol('$3')), drop_leading_eol('$5')).
 template_exprs ->
   var_expr template_exprs : combine('$1', '$2').
 template_exprs ->
@@ -80,7 +80,9 @@ scan_and_parse(Text) when is_binary(Text) ->
   case gb_lexer:scan(Text) of
     {ok, Nodes, _} ->
       ?MODULE:parse(Nodes);
-    {error, {_, Module, _}}=Error ->
+    {error, {_, Module, Error}} ->
+      Module:format_error(Error);
+    {error, {_, Module, Error}, _} ->
       Module:format_error(Error)
   end.
 
@@ -102,3 +104,6 @@ make_var(Name, Ops) -> {var, Name, Ops}.
 
 ensure_list(Value) when is_list(Value) -> Value;
 ensure_list(Value) -> [Value].
+
+drop_leading_eol([eol|T]) -> T;
+drop_leading_eol(V) -> V.

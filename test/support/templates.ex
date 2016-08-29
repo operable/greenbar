@@ -33,7 +33,6 @@ This is a test.
 
 ~each var=$items~
   ~$item.id~
-
 ~end~
 
 This has been a test.
