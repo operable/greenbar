@@ -1,5 +1,7 @@
 defmodule Greenbar.Test.Support.Templates do
 
+  def documentation, do: "~$results[0].documentation~"
+
   def vm_list do
     """
 ~each var=$vms~

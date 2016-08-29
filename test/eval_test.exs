@@ -41,4 +41,10 @@ defmodule Greenbar.EvalTest do
                                             "text", "newline"]) # Footer
   end
 
+  test "indexed variables work" do
+    data = %{"results" => [%{"documentation" => "These are my docs"}]}
+    result = eval_template("documentation", Templates.documentation, data)
+    assert [%{name: "text", text: "These are my docs"}] == result
+  end
+
 end

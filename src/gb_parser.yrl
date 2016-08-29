@@ -70,7 +70,7 @@ var_ops ->
 var_ops ->
   dot expr_name var_ops : [{key, value_from('$2')}] ++ '$3'.
 var_ops ->
-  lbracket integer rbracket var_ops : [{index, value_from('$2')}] ++ '$3'.
+  lbracket integer rbracket var_ops : [{index, value_from('$2')}] ++ '$4'.
 
 Erlang code.
 
