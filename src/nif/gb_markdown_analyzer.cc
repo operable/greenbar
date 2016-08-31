@@ -3,6 +3,7 @@
 #include "buffer.h"
 
 #include <string>
+#include <iostream>
 #include <cstring>
 #include <cstdlib>
 #include <vector>
@@ -99,13 +100,12 @@ static void gb_markdown_header(hoedown_buffer *ob, const hoedown_buffer *content
 }
 
 static void gb_markdown_paragraph(hoedown_buffer *ob, const hoedown_buffer *content, const hoedown_renderer_data *data) {
+  auto collector = get_collector(data);
+  collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_EOL));
   if (content->size > 0) {
-    auto collector = get_collector(data);
-    collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_EOL));
-    collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_EOL));
     collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_TEXT, content));
+    collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_EOL));
   }
-
 }
 
 static int gb_markdown_autolink(hoedown_buffer *ob, const hoedown_buffer *link, hoedown_autolink_type type, const hoedown_renderer_data *data) {
@@ -134,7 +134,8 @@ static int gb_markdown_double_emphasis(hoedown_buffer *ob, const hoedown_buffer 
 
 static int gb_markdown_linebreak(hoedown_buffer *ob, const hoedown_renderer_data *data) {
   auto collector = get_collector(data);
-  collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_EOL));
+  auto info = new greenbar::MarkdownInfo(greenbar::MD_EOL);
+  collector->push_back(info);
   return 1;
 }
 
@@ -147,5 +148,6 @@ static int gb_markdown_link(hoedown_buffer *ob, const hoedown_buffer *content, c
 
 static void gb_markdown_normal_text(hoedown_buffer *ob, const hoedown_buffer *text, const hoedown_renderer_data *data) {
   auto collector = get_collector(data);
-  collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_TEXT, text));
+  auto info = new greenbar::MarkdownInfo(greenbar::MD_TEXT, text);
+  collector->push_back(info);
 }

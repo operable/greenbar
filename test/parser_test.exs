@@ -9,13 +9,11 @@ defmodule Greenbar.ParserTest do
     {:text, "This is a test."} = Enum.at(template, 0)
   end
 
-  test "newlines get their own parse nodes" do
+  test "newlines stay with their parsed text" do
     {:ok, template} = Parser.scan_and_parse("This is a \ntest.\n")
-    assert Enum.count(template) == 4
+    assert Enum.count(template) == 1
     text_node = Enum.at(template, 0)
-    assert text_node == {:text, "This is a "}
-    newline_node = Enum.at(template, 1)
-    assert newline_node == :eol
+    assert text_node == {:text, "This is a \ntest.\n"}
   end
 
   test "tags w/o bodies are parsed" do
@@ -30,7 +28,7 @@ defmodule Greenbar.ParserTest do
     assert Enum.count(template) == 2
     {:tag, "each", attrs, body} = Enum.at(template, 0)
     assert [{:assign_tag_attr, "var", {:var, "vms", nil}}] == attrs
-    assert [{:var, "item", [key: "name"]}, :eol] == body
+    assert [{:var, "item", [key: "name"]}, {:text, "\n"}] == body
   end
 
   test "nested tags are parsed" do
@@ -39,15 +37,15 @@ defmodule Greenbar.ParserTest do
     {:tag, "each", attrs, body} = Enum.at(template, 0)
     assert [{:assign_tag_attr, "var", {:var, "regions", nil}}] == attrs
     assert {:var, "item", [key: "name"]} = Enum.at(body, 0)
-    {:tag, "each", attrs, body} = Enum.at(body, 3)
+    {:tag, "each", attrs, body} = Enum.at(body, 2)
     assert [{:assign_tag_attr, "var", {:var, "item", [key: "vms"]}}] == attrs
     assert [{:text, "    "}, {:var, "item", [key: "name"]}, {:text, " ("},
-            {:var, "item", [key: "id"]}, {:text, ")"}, :eol, {:text, "  "}] == body
+            {:var, "item", [key: "id"]}, {:text, ")\n  "}] == body
   end
 
   test "solo variables are parsed" do
     {:ok, template} = Parser.scan_and_parse(Templates.solo_variable)
-    [{:text, "This is a test."}, :eol, {:var, "item", nil}, {:text, "."}, :eol] = template
+    [{:text, "This is a test.\n"}, {:var, "item", nil}, {:text, ".\n"}] = template
   end
 
 end

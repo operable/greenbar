@@ -8,6 +8,7 @@ defmodule Greenbar.DirectivesGenerator do
 
   defp process_markdown(%{name: :text, text: text}) do
     {:ok, parsed} = Greenbar.Markdown.analyze(text)
+    IO.inspect parsed, pretty: true
     parsed
     |> Enum.map(&manually_split_newlines/1)
     |> :lists.flatten
