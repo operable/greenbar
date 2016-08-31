@@ -86,8 +86,8 @@ defmodule Greenbar.Runtime do
     end
   end
 
-  def add_to_buffer(%{name: "text", text: text}, [%{name: "text", text: bt}|buffer]) do
-    [%{name: "text", text: Enum.join([bt, text])}|buffer]
+  def add_to_buffer(%{name: :text, text: text}, [%{name: :text, text: bt}|buffer]) do
+    [%{name: :text, text: Enum.join([bt, text])}|buffer]
   end
   def add_to_buffer(item, buffer), do: [item|buffer]
 
@@ -97,6 +97,6 @@ defmodule Greenbar.Runtime do
   def stringify_value(value), do: "#{value}"
 
   defp append_output(buffer, nil), do: buffer
-  defp append_output(buffer, output), do: add_to_buffer(%{name: "text", text: output}, buffer)
+  defp append_output(buffer, output), do: add_to_buffer(%{name: :text, text: output}, buffer)
 
 end

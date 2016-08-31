@@ -12,22 +12,22 @@ defmodule Greenbar.Generator do
 
   def emit({:text, text}) do
     quote bind_quoted: [text: text] do
-      buffer = Greenbar.Runtime.add_to_buffer(%{name: "text", text: text}, buffer)
+      buffer = Greenbar.Runtime.add_to_buffer(%{name: :text, text: text}, buffer)
     end
   end
   def emit(:eol) do
     quote do
-      buffer = Greenbar.Runtime.add_to_buffer(%{name: "text", text: "\n"}, buffer)
+      buffer = Greenbar.Runtime.add_to_buffer(%{name: :newline}, buffer)
     end
   end
   def emit({:var, name, nil}) do
     quote bind_quoted: [name: name] do
-      buffer = Greenbar.Runtime.add_to_buffer(%{name: "text", text: Greenbar.Runtime.var_to_text(scope, name)}, buffer)
+      buffer = Greenbar.Runtime.add_to_buffer(%{name: :text, text: Greenbar.Runtime.var_to_text(scope, name)}, buffer)
     end
   end
   def emit({:var, name, ops}) do
     quote bind_quoted: [name: name, ops: ops] do
-      buffer = Greenbar.Runtime.add_to_buffer(%{name: "text", text: Greenbar.Runtime.var_to_text(scope, name, ops)}, buffer)
+      buffer = Greenbar.Runtime.add_to_buffer(%{name: :text, text: Greenbar.Runtime.var_to_text(scope, name, ops)}, buffer)
     end
   end
   def emit({:tag, name, nil, nil}) do
@@ -35,7 +35,7 @@ defmodule Greenbar.Generator do
       tag_mod = Greenbar.Runtime.get_tag!(scope, name)
       {tag_output, scope} = Greenbar.Runtime.render_tag!(tag_mod, nil, nil, scope)
       buffer = if tag_output != nil do
-        Greenbar.Runtime.add_to_buffer(%{name: "text", text: tag_output}, buffer)
+        Greenbar.Runtime.add_to_buffer(%{name: :text, text: tag_output}, buffer)
       else
         buffer
       end
@@ -48,7 +48,7 @@ defmodule Greenbar.Generator do
       tag_mod = Greenbar.Runtime.get_tag!(scope, name)
       {tag_output, scope} = Greenbar.Runtime.render_tag!(tag_mod, attrs, scope)
       buffer = if tag_output != nil do
-        Greenbar.Runtime.add_to_buffer(%{name: "text", text: tag_output}, buffer)
+        Greenbar.Runtime.add_to_buffer(%{name: :text, text: tag_output}, buffer)
       else
         buffer
       end
@@ -66,22 +66,28 @@ defmodule Greenbar.Generator do
   end
 
   defp build_attr_exprs([], attr_expr) do
-    Macro.pipe(quote do %{} end, attr_expr, 0)
+    attr_expr
   end
   defp build_attr_exprs([{:assign_tag_attr, attr_name, {type, _, value, nil}}|t], nil) when type in [:integer, :float, :string] do
-    build_attr_exprs(t, quote do Map.put(unquote(attr_name), unquote(value)) end)
+    expr = Macro.pipe(quote do %{} end, quote do Map.put(unquote(attr_name), unquote(value)) end, 0)
+    build_attr_exprs(t, expr)
   end
   defp build_attr_exprs([{:assign_tag_attr, attr_name, {:var, name, ops}}|t], nil) do
-    build_attr_exprs(t, quote do Map.put(unquote(attr_name), Greenbar.Runtime.var_to_value(scope, unquote(name), unquote(ops))) end)
+    expr = Macro.pipe(quote do %{} end, quote do
+                       Map.put(unquote(attr_name),
+                         Greenbar.Runtime.var_to_value(scope, unquote(name), unquote(ops)))
+    end, 0)
+    build_attr_exprs(t, expr)
   end
   defp build_attr_exprs([{:assign_tag_attr, attr_name, {type, _, value, nil}}|t], expr) when type in [:integer, :float, :string] do
-    expr = Macro.pipe(quote do Map.put(unquote(attr_name), unquote(value)) end, expr, 0)
+    expr = Macro.pipe(expr, quote do Map.put(unquote(attr_name), unquote(value)) end, 0)
     build_attr_exprs(t, expr)
   end
   defp build_attr_exprs([{:assign_tag_attr, attr_name, {:var, name, ops}}|t], expr) do
-    expr = Macro.pipe(quote do
-                       Map.put(unquote(attr_name), Greenbar.Runtime.var_to_value(scope, unquote(name), unquote(ops)))
-                      end, expr, 0)
+    expr = Macro.pipe(expr, quote do
+                       Map.put(unquote(attr_name),
+                         Greenbar.Runtime.var_to_value(scope, unquote(name), unquote(ops)))
+    end, 0)
     build_attr_exprs(t, expr)
   end
 
