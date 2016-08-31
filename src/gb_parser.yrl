@@ -56,6 +56,8 @@ tag_attr ->
 tag_attr ->
   expr_name assign string : {assign_tag_attr, value_from('$1'), '$3'}.
 tag_attr ->
+  expr_name assign expr_name : {assign_tag_attr, value_from('$1'), name_to_string('$3')}.
+tag_attr ->
   expr_name assign var_expr : {assign_tag_attr, value_from('$1'), '$3'}.
 
 var_expr ->
@@ -107,3 +109,5 @@ ensure_list(Value) -> [Value].
 
 drop_leading_eol([eol|T]) -> T;
 drop_leading_eol(V) -> V.
+
+name_to_string({expr_name, Pos, Value}) -> {string, Pos, Value, nil}.
