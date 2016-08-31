@@ -9,6 +9,17 @@ defmodule Greenbar.Markdown do
     :ok = :erlang.load_nif(path, 0)
   end
 
+  def analyze(text) do
+    case parse(text) do
+      {:ok, []} ->
+        {:ok, []}
+      {:ok, values} ->
+        {:ok, Enum.reverse(values)}
+      error ->
+        error
+    end
+  end
+
   @spec parse(text :: String.t) :: {:ok, []|[map()]}
   def parse(text)
 
