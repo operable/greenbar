@@ -6,7 +6,6 @@ defmodule Greenbar.Generator do
       fn(scope, buffer) ->
         unquote_splicing(quoted_body)
         buffer = Enum.reverse(buffer)
-        IO.inspect buffer, pretty: true
         Greenbar.DirectivesGenerator.generate(buffer)
       end
     end

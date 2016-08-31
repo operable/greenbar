@@ -26,7 +26,7 @@ template_exprs ->
 template_exprs ->
   expr_name tag_attrs : make_tag(value_from('$1'), '$2').
 template_exprs ->
-  expr_name tag_attrs template_exprs expr_end : make_tag(value_from('$1'), '$2', drop_leading_eol('$4')).
+  expr_name tag_attrs template_exprs expr_end : make_tag(value_from('$1'), '$2', drop_leading_eol('$3')).
 template_exprs ->
   var_expr : '$1'.
 template_exprs ->
@@ -38,7 +38,7 @@ template_exprs ->
 template_exprs ->
   expr_name tag_attrs template_exprs : combine(make_tag(value_from('$1'), '$2'), '$3').
 template_exprs ->
-  expr_name tag_attrs template_exprs expr_end template_exprs : combine(make_tag(value_from('$1'), '$2', drop_leading_eol('$3')), drop_leading_eol('$5')).
+  expr_name tag_attrs template_exprs expr_end template_exprs : combine(make_tag(value_from('$1'), '$2', '$3'), drop_leading_eol('$5')).
 template_exprs ->
   var_expr template_exprs : combine('$1', '$2').
 template_exprs ->
@@ -76,7 +76,8 @@ var_ops ->
 
 Erlang code.
 
--export([scan_and_parse/1]).
+-export([scan_and_parse/1,
+         drop_leading_eol/1]).
 
 scan_and_parse(Text) when is_binary(Text) ->
   case gb_lexer:scan(Text) of
@@ -99,7 +100,9 @@ value_from({_, _, Text}) -> Text.
 
 make_tag(Name) -> {tag, Name, nil, nil}.
 make_tag(Name, Attrs) -> {tag, Name, Attrs, nil}.
-make_tag(Name, Attrs, Body) -> {tag, Name, Attrs, Body}.
+make_tag(Name, Attrs, Body) ->
+  Body1 = drop_leading_eol(Body),
+  {tag, Name, Attrs, Body1}.
 
 make_var(Name) -> {var, Name, nil}.
 make_var(Name, Ops) -> {var, Name, Ops}.
@@ -107,7 +110,23 @@ make_var(Name, Ops) -> {var, Name, Ops}.
 ensure_list(Value) when is_list(Value) -> Value;
 ensure_list(Value) -> [Value].
 
-drop_leading_eol([eol|T]) -> T;
-drop_leading_eol(V) -> V.
+drop_leading_eol({text, <<"\n">>}) -> nil;
+drop_leading_eol([{text, <<"\n">>}|T]) -> T;
+drop_leading_eol([{text, <<$\n, Text/binary>>}|T]) ->
+  [{text, <<$\n, Text/binary>>}|T];
+drop_leading_eol(V) ->
+  io:format("Skipped: ~p~n", [V]),
+  V.
+
+% drop_trailing_eol(Body) ->
+%   case lists:last(Body) of
+%     {text, <<"\n">>}=Last ->
+%       Body -- [Last];
+%     {text, <<$\n, $\n, Rest/binary>>}=Last ->
+%       Body1 = Body -- [Last],
+%       [{text, <<$\n, Rest/binary>>}|Body1];
+%     _ ->
+%       Body
+%   end.
 
 name_to_string({expr_name, Pos, Value}) -> {string, Pos, Value, nil}.
