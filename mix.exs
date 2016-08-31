@@ -1,3 +1,26 @@
+defmodule Mix.Tasks.Compile.Hoedown do
+  @shortdoc "Compiles Hoedown"
+
+  alias Mix.Shell.IO
+
+  def run(_) do
+    if match? {:win32, _}, :os.type do
+      raise "Building on Windows not yet supported"
+    else
+      {result, error_code} = System.cmd("make", [], stderr_to_stdout: true)
+      if error_code == 0 do
+        IO.info(result)
+        IO.info("(hoedown NIF) compilation complete.")
+        :ok
+      else
+        IO.error("(hoedown NIF) #{result}")
+        Mix.raise("(hoedown NIF) compilation failed.")
+      end
+    end
+    :ok
+  end
+end
+
 defmodule Greenbar.Mixfile do
   use Mix.Project
 
@@ -5,6 +28,7 @@ defmodule Greenbar.Mixfile do
     [app: :greenbar,
      version: "0.14.0",
      elixir: "~> 1.3.1",
+     compilers: [:hoedown, :leex, :yecc, :erlang, :elixir, :app],
      erlc_options: [:debug_info, :warnings_as_errors],
      leex_options: [:warnings_as_errors],
      elixirc_paths: elixirc_paths(Mix.env),
@@ -24,7 +48,7 @@ defmodule Greenbar.Mixfile do
     [
       # Direct dependencies
       {:piper, github: "operable/piper", branch: "kevsmith/templates"},
-      {:earmark, "~> 1.0"},
+      {:hoedown, github: "hoedown/hoedown", branch: "master", app: false},
 
       # Test and Development
       {:credo, "~> 0.4", only: [:dev, :test]},

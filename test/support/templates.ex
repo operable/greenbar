@@ -45,7 +45,7 @@ This has been a test.
     """
 This is a test. There are ~count var=$items~ items.
 ~each var=$items~
-  ~$item~
+  `~$item~`
 ~end~
 
 There are ~count var=$items~ items.

@@ -1,0 +1,106 @@
+defmodule Greenbar.Markdown do
+
+  # Lifted from Earmark
+  # (https://github.com/pragdave/earmark)
+  @format_exprs [bold:           {~r/(^__|\s__)([^(__)])*\S__/, ~r/^__|__$/},
+                 italics:        {~r/(^_|\s_)[^_]([\s\S])*\S_/, ~r/^_|_$/},
+                 single_tick:    {~r/(^`|\s`)([^`])*`/, ~r/^`|`$/},
+                 triple_tick:    {~r/^```(\s)*\n([^(```)])+\n```/, ~r/^```(\s)*\n|\n```$/}]
+
+  # @structural_exprs [star_unordered_list:  ~r/(?P<text>((^\*|\n\s\*) ([^\n])*)+)/,
+  #                    dash_unordered_list:  ~r/(?P<text>((^\-|\n\s\*) ([^\n])*)+)/,
+  #                    ordered_list:         ~r/(?P<text>(^([0-9])+\. ([^\n])*))\n?/]
+
+  def add_formatting(outputs) do
+    case add_formatting(outputs, []) do
+      ^outputs ->
+        outputs
+      updated ->
+        add_formatting(updated)
+    end
+  end
+
+  defp add_formatting([], accum) do
+    Enum.reverse(accum)
+  end
+  defp add_formatting([%{name: "text"}=h|t], accum) do
+    case Enum.reduce_while(@format_exprs, h, &try_formatting/2) do
+      ^h ->
+        add_formatting(t, [h|accum])
+      updated ->
+        add_formatting(t, updated ++ accum)
+    end
+  end
+  defp add_formatting([h|t], accum), do: add_formatting(t, [h|accum])
+
+  defp try_formatting({name, {match_expr, clean_expr}}, %{text: text}=acc) do
+    case Regex.run(match_expr, text, return: :index, capture: :first, multiline: true) do
+      nil ->
+        {:cont, acc}
+      [{s, l}] ->
+        name = convert_name(name)
+        {:halt, case partition_string(text, s, l, clean_expr) do
+                  [before: nil, match: match, after: post] ->
+                    [%{name: "text", text: post}, %{name: name, text: match}]
+                  [before: pre, match: match, after: nil] ->
+                    [%{name: name, text: match}, %{name: "text", text: pre}]
+                  [before: pre, match: match, after: post] ->
+                    [%{name: "text", text: post}, %{name: name, text: match}, %{name: "text", text: pre}]
+                end}
+    end
+  end
+
+  defp partition_string(text, 0, l, clean_expr) do
+    {match, post} = adjust_whitespace(:post, String.split_at(text, l))
+    match = String.replace(match, clean_expr, "", global: true)
+    [before: nil,
+     match: match,
+     after: post]
+  end
+  defp partition_string(text, s, l, clean_expr) do
+    {pre, rest} = adjust_whitespace(:pre, String.split_at(text, s))
+    {match, post} = adjust_whitespace(:post, String.split_at(rest, l))
+    post = if post == " " do
+      nil
+    end
+    match = String.replace(match, clean_expr, "", global: true)
+    [before: pre,
+     match: match,
+     after: post]
+  end
+
+  defp adjust_whitespace(:pre, {pre, match}) do
+    {pre, match} = case String.split(match, ~r/^\n/, parts: 2) do
+                     [^match] ->
+                       {pre, match}
+                      [rest, match] ->
+                       adjust_whitespace(:pre, {Enum.join([rest, match]), Enum.join([pre, "\n"])})
+                   end
+    case String.split(match, ~r/^ /, parts: 2) do
+      [^match] ->
+        {pre, match}
+      [rest, match] ->
+        adjust_whitespace(:pre, {Enum.join([rest, match]), Enum.join([pre, " "])})
+    end
+  end
+  defp adjust_whitespace(:post, {match, post}) do
+    {match, post} = case String.split(match, ~r/\n$/, parts: 2) do
+                      [^match] ->
+                        {match, post}
+                      [match, rest] ->
+                        adjust_whitespace(:post, {Enum.join([match, rest]), Enum.join(["\n", post])})
+                    end
+    case String.split(match, ~r/ $/, parts: 2) do
+      [^match] ->
+        {match, post}
+      [match, rest] ->
+        adjust_whitespace(:post, {Enum.join([match, rest]), Enum.join([" ", post])})
+    end
+  end
+
+  defp convert_name(:bold), do: "bold"
+  defp convert_name(:italics), do: "italics"
+  defp convert_name(:single_tick), do: "fixed-width"
+  defp convert_name(:triple_tick), do: "fixed-width"
+
+end

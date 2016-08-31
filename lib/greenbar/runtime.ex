@@ -86,11 +86,10 @@ defmodule Greenbar.Runtime do
     end
   end
 
-  def combine_text(%{name: :text}=v, []), do: [v]
-  def combine_text(%{name: :text}=v, [%{name: :text, text: acc_text}|t]) do
-    [%{name: :text, text: Enum.join([v, acc_text])}|t]
+  def add_to_buffer(%{name: "text", text: text}, [%{name: "text", text: bt}|buffer]) do
+    [%{name: "text", text: Enum.join([bt, text])}|buffer]
   end
-  def combine_text(v, acc), do: [v|acc]
+  def add_to_buffer(item, buffer), do: [item|buffer]
 
   def stringify_value(nil), do: ""
   def stringify_value(value) when is_list(value) or is_map(value), do: Poison.encode!(value)
@@ -98,6 +97,6 @@ defmodule Greenbar.Runtime do
   def stringify_value(value), do: "#{value}"
 
   defp append_output(buffer, nil), do: buffer
-  defp append_output(buffer, output), do: [%{name: :text, text: output}|buffer]
+  defp append_output(buffer, output), do: add_to_buffer(%{name: "text", text: output}, buffer)
 
 end

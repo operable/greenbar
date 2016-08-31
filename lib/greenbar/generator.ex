@@ -12,22 +12,22 @@ defmodule Greenbar.Generator do
 
   def emit({:text, text}) do
     quote bind_quoted: [text: text] do
-      buffer = [%{name: :text, text: text}|buffer]
+      buffer = Greenbar.Runtime.add_to_buffer(%{name: "text", text: text}, buffer)
     end
   end
   def emit(:eol) do
     quote do
-      buffer = [%{name: :eol}|buffer]
+      buffer = Greenbar.Runtime.add_to_buffer(%{name: "text", text: "\n"}, buffer)
     end
   end
   def emit({:var, name, nil}) do
     quote bind_quoted: [name: name] do
-      buffer = [%{name: :text, text: Greenbar.Runtime.var_to_text(scope, name)}|buffer]
+      buffer = Greenbar.Runtime.add_to_buffer(%{name: "text", text: Greenbar.Runtime.var_to_text(scope, name)}, buffer)
     end
   end
   def emit({:var, name, ops}) do
     quote bind_quoted: [name: name, ops: ops] do
-      buffer = [%{name: :text, text: Greenbar.Runtime.var_to_text(scope, name, ops)}|buffer]
+      buffer = Greenbar.Runtime.add_to_buffer(%{name: "text", text: Greenbar.Runtime.var_to_text(scope, name, ops)}, buffer)
     end
   end
   def emit({:tag, name, nil, nil}) do
@@ -35,7 +35,7 @@ defmodule Greenbar.Generator do
       tag_mod = Greenbar.Runtime.get_tag!(scope, name)
       {tag_output, scope} = Greenbar.Runtime.render_tag!(tag_mod, nil, nil, scope)
       buffer = if tag_output != nil do
-        [%{name: :text, text: tag_output}|buffer]
+        Greenbar.Runtime.add_to_buffer(%{name: "text", text: tag_output}, buffer)
       else
         buffer
       end
@@ -48,7 +48,7 @@ defmodule Greenbar.Generator do
       tag_mod = Greenbar.Runtime.get_tag!(scope, name)
       {tag_output, scope} = Greenbar.Runtime.render_tag!(tag_mod, attrs, scope)
       buffer = if tag_output != nil do
-        [%{name: :text, text: tag_output}|buffer]
+        Greenbar.Runtime.add_to_buffer(%{name: "text", text: tag_output}, buffer)
       else
         buffer
       end

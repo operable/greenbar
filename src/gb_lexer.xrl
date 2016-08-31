@@ -2,15 +2,13 @@ Definitions.
 
 TEMPLATE_EXPR           = ~(\\~|"|[^~])+~
 COMMENT                 = #(.)*(\n|\r\n)
-TEXT                    = (\\#|\\~|[^#~\r\n])+
-EOL                     = (\n|\r\n)
+TEXT                    = (\\#|\\~|[^#~])+
 
 Rules.
 
 {COMMENT}               : skip_token.
 {TEMPLATE_EXPR}         : {token, {tag_expr, TokenLine, unwrap_expr(TokenChars)}}.
 {TEXT}                  : {token, {text, TokenLine, ?_ES(TokenChars)}}.
-{EOL}                   : {token, {eol, TokenLine, <<"\n">>}}.
 
 Erlang code.
 

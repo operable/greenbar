@@ -18,3 +18,10 @@ erl_crash.dump
 
 # Generated Erlang source files
 /src/*.erl
+
+# Compiled NIF shared lib
+/priv/*.so
+/priv/*.so.dSYM
+
+# Object files
+**/*.o

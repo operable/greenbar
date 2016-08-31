@@ -16,7 +16,7 @@ defmodule Greenbar.EvalTest do
 
   test "map variables render correctly" do
     result = eval_template("solo_variable", Templates.solo_variable, %{"item" => %{"name" => "baz"}})
-    Assertions.directive_structure(result, ["text", "newline", "text", "newline"])
+    Assertions.directive_structure(result, ["text"])
   end
 
   test "newlines are preserved" do
@@ -33,6 +33,7 @@ defmodule Greenbar.EvalTest do
   test "parent/child scopes work" do
     data = %{"items" => ["a","b","c"]}
     result = eval_template("parent_child_scopes", Templates.parent_child_scopes, data)
+    IO.inspect result
     Assertions.directive_structure(result, ["text", "newline",  # Header
                                             "text", "newline",  # a
                                             "text", "newline",  # b
