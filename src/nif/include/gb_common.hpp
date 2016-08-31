@@ -7,6 +7,12 @@ typedef struct {
   ERL_NIF_TERM gb_atom_out_of_memory;
   ERL_NIF_TERM gb_atom_name;
   ERL_NIF_TERM gb_atom_text;
+  ERL_NIF_TERM gb_atom_newline;
+  ERL_NIF_TERM gb_atom_fixed_width;
+  ERL_NIF_TERM gb_atom_header;
+  ERL_NIF_TERM gb_atom_italics;
+  ERL_NIF_TERM gb_atom_bold;
+  ERL_NIF_TERM gb_atom_link;
 } gb_priv_s;
 
 #endif

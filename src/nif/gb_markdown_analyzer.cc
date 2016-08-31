@@ -87,57 +87,57 @@ static std::vector<greenbar::MarkdownInfo*>* get_collector(const hoedown_rendere
 static void gb_markdown_blockcode(hoedown_buffer *ob, const hoedown_buffer *text, const hoedown_buffer *lang,
                                   const hoedown_renderer_data *data) {
   auto collector = get_collector(data);
-  collector->push_back(new greenbar::MarkdownInfo("fixed-width", text));
+  collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_FIXED_WIDTH, text));
 }
 
 static void gb_markdown_header(hoedown_buffer *ob, const hoedown_buffer *content, int level,
                                     const hoedown_renderer_data *data) {
   auto collector = get_collector(data);
-  collector->push_back(new greenbar::MarkdownInfo("header", content, level));
+  collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_HEADER, content, level));
 }
 
 static void gb_markdown_paragraph(hoedown_buffer *ob, const hoedown_buffer *content, const hoedown_renderer_data *data) {
   if (content->size > 0) {
     auto collector = get_collector(data);
-    collector->push_back(new greenbar::MarkdownInfo("text", content));
-    collector->push_back(new greenbar::MarkdownInfo("eol", ""));
-    collector->push_back(new greenbar::MarkdownInfo("eol", ""));
+    collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_TEXT, content));
+    collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_EOL));
+    collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_EOL));
   }
 
 }
 
 static int gb_markdown_autolink(hoedown_buffer *ob, const hoedown_buffer *link, hoedown_autolink_type type, const hoedown_renderer_data *data) {
   auto collector = get_collector(data);
-  collector->push_back(new greenbar::MarkdownInfo("text", link));
+  collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_TEXT, link));
   return 1;
 }
 
 static int gb_markdown_codespan(hoedown_buffer *ob, const hoedown_buffer *text, const hoedown_renderer_data *data) {
   auto collector = get_collector(data);
-  collector->push_back(new greenbar::MarkdownInfo("fixed-width", text));
+  collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_FIXED_WIDTH, text));
   return 1;
 }
 
 static int gb_markdown_emphasis(hoedown_buffer *ob, const hoedown_buffer *content, const hoedown_renderer_data *data) {
   auto collector = get_collector(data);
-  collector->push_back(new greenbar::MarkdownInfo("italics", content));
+  collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_ITALICS, content));
   return 1;
 }
 
 static int gb_markdown_double_emphasis(hoedown_buffer *ob, const hoedown_buffer *content, const hoedown_renderer_data *data) {
   auto collector = get_collector(data);
-  collector->push_back(new greenbar::MarkdownInfo("bold", content));
+  collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_BOLD, content));
   return 1;
 }
 
 static int gb_markdown_linebreak(hoedown_buffer *ob, const hoedown_renderer_data *data) {
   auto collector = get_collector(data);
-  collector->push_back(new greenbar::MarkdownInfo("eol", ""));
+  collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_EOL));
   return 1;
 }
 static int gb_markdown_link(hoedown_buffer *ob, const hoedown_buffer *content, const hoedown_buffer *link, const hoedown_buffer *title,
                             const hoedown_renderer_data *data) {
   auto collector = get_collector(data);
-  collector->push_back(new greenbar::MarkdownInfo("link", link));
+  collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_LINK, link));
   return 1;
 }

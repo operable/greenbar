@@ -23,6 +23,7 @@
 #include "buffer.h"
 
 #include <vector>
+#include "gb_common.hpp"
 #include "markdown_analyzer.hpp"
 
 // Prototype
@@ -35,15 +36,6 @@
 // NIF function forward declares
 NIF(gb_parse);
 
-
-// Frequently used data
-typedef struct {
-  ERL_NIF_TERM gb_atom_ok;
-  ERL_NIF_TERM gb_atom_error;
-  ERL_NIF_TERM gb_atom_out_of_memory;
-  ERL_NIF_TERM gb_atom_name;
-  ERL_NIF_TERM gb_atom_text;
-} gb_priv_s;
 
 static ErlNifFunc nif_funcs[] =
 {
@@ -58,6 +50,7 @@ static int on_load(ErlNifEnv* env, void** priv, ERL_NIF_TERM load_info) {
     return 1;
   }
 
+  // Frequently used atoms
   if (enif_make_existing_atom(env, "ok", &priv_data->gb_atom_ok, ERL_NIF_LATIN1) == false) {
     priv_data->gb_atom_ok = enif_make_atom(env, "ok");
   }
@@ -72,6 +65,24 @@ static int on_load(ErlNifEnv* env, void** priv, ERL_NIF_TERM load_info) {
   }
   if (enif_make_existing_atom(env, "text", &priv_data->gb_atom_text, ERL_NIF_LATIN1) == false) {
     priv_data->gb_atom_text = enif_make_atom(env, "text");
+  }
+  if (enif_make_existing_atom(env, "newline", &priv_data->gb_atom_newline, ERL_NIF_LATIN1) == false) {
+    priv_data->gb_atom_newline = enif_make_atom(env, "newline");
+  }
+  if (enif_make_existing_atom(env, "fixed_width", &priv_data->gb_atom_fixed_width, ERL_NIF_LATIN1) == false) {
+    priv_data->gb_atom_fixed_width = enif_make_atom(env, "fixed_width");
+  }
+  if (enif_make_existing_atom(env, "header", &priv_data->gb_atom_header, ERL_NIF_LATIN1) == false) {
+    priv_data->gb_atom_header = enif_make_atom(env, "header");
+  }
+  if (enif_make_existing_atom(env, "italics", &priv_data->gb_atom_italics, ERL_NIF_LATIN1) == false) {
+    priv_data->gb_atom_italics = enif_make_atom(env, "italics");
+  }
+  if (enif_make_existing_atom(env, "bold", &priv_data->gb_atom_bold, ERL_NIF_LATIN1) == false) {
+    priv_data->gb_atom_bold = enif_make_atom(env, "bold");
+  }
+  if (enif_make_existing_atom(env, "link", &priv_data->gb_atom_link, ERL_NIF_LATIN1) == false) {
+    priv_data->gb_atom_link = enif_make_atom(env, "link");
   }
 
   *priv = (void *) priv_data;
@@ -92,8 +103,16 @@ static ERL_NIF_TERM convert_results(ErlNifEnv *env, std::vector<greenbar::Markdo
   if (collector->size() < 1) {
     return tail;
   }
+  size_t last_index = collector->size() - 1;
   for(size_t i = 0; i < collector->size(); i++) {
     auto info = collector->at(i);
+    // Don't add double EOLs to end of template
+    if (i == last_index && info->type == greenbar::MD_EOL) {
+      auto previous = collector->at(i - 1);
+      if (previous->type == greenbar::MD_EOL) {
+        continue;
+      }
+    }
     head = info->to_erl_term(env);
     tail = enif_make_list_cell(env, head, tail);
   }
