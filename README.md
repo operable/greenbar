@@ -66,5 +66,8 @@ iex(4)> Greenbar.Engine.eval!(engine, "hello", %{"user" => "Zaphod"})
 ## Syntax
 
 Greenbar uses Markdown for formatting text. Emphasis, strong, code, and code blocks are currently supported.
-Template variables and tags are referenced using tildes. See test/support/templates.ex for more examples.
+Template variables and tags are referenced using tildes. See [test/support/templates.ex](https://github.com/operable/greenbar/blob/master/test/support/templates.ex) for more examples.
 
+## Tags
+
+Greenbar tags are designed to be extensible. See [lib/greenbar/tag.ex](https://github.com/operable/greenbar/blob/master/lib/greenbar/tag.ex) for details.
