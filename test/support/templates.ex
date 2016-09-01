@@ -52,4 +52,20 @@ This is a test. There are ~count var=$items~ items.
 There are ~count var=$items~ items.
 """
   end
+
+  def bundles do
+    """
+Here are all my bundles:
+~br~
+~each var=$results as=bundle~
+ID: ~$bundle.id~
+Name: ~$bundle.name~
+# TODO: Need an "if" tag for this if there is no enabled version
+Enabled Version: ~$bundle.enabled_version.version~
+
+~end~
+"""
+
+  end
+
 end
