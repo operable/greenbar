@@ -5,8 +5,9 @@ defmodule Mix.Tasks.Compile.Hoedown do
 
   def run(_) do
     if match? {:win32, _}, :os.type do
-      raise "Building on Windows not yet supported"
+      Mix.raise("Windows not yet supported")
     else
+      File.mkdir_p! "priv"
       {result, error_code} = System.cmd("make", [], stderr_to_stdout: true)
       if error_code == 0 do
         IO.info(result)
@@ -51,9 +52,6 @@ defmodule Greenbar.Mixfile do
       {:hoedown, github: "hoedown/hoedown", branch: "master", app: false},
 
       # Test and Development
-      {:credo, "~> 0.4", only: [:dev, :test]},
-      {:ex_doc, "~> 0.13", only: :dev},
-      {:excoveralls, "~> 0.5", only: :test},
       {:mix_test_watch, "~> 0.2", only: [:dev, :test]},
     ]
   end
