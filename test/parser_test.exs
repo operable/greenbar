@@ -25,7 +25,7 @@ defmodule Greenbar.ParserTest do
 
   test "tags w/bodies are parsed" do
     {:ok, template} = Parser.scan_and_parse(Templates.vm_list)
-    assert Enum.count(template) == 2
+    assert Enum.count(template) == 1
     {:tag, "each", attrs, body} = Enum.at(template, 0)
     assert [{:assign_tag_attr, "var", {:var, "vms", nil}}] == attrs
     assert [{:var, "item", [key: "name"]}, {:text, "\n"}] == body
@@ -33,7 +33,7 @@ defmodule Greenbar.ParserTest do
 
   test "nested tags are parsed" do
     {:ok, template} = Parser.scan_and_parse(Templates.vms_per_region)
-    assert Enum.count(template) == 2
+    assert Enum.count(template) == 1
     {:tag, "each", attrs, body} = Enum.at(template, 0)
     assert [{:assign_tag_attr, "var", {:var, "regions", nil}}] == attrs
     assert {:var, "item", [key: "name"]} = Enum.at(body, 0)
@@ -46,6 +46,10 @@ defmodule Greenbar.ParserTest do
   test "solo variables are parsed" do
     {:ok, template} = Parser.scan_and_parse(Templates.solo_variable)
     [{:text, "This is a test.\n"}, {:var, "item", nil}, {:text, ".\n"}] = template
+  end
+
+  test "comments w/o terminating newlines are parsed" do
+    Greenbar.compile!("dangling_comment", Templates.dangling_comment)
   end
 
 end

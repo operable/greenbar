@@ -3,7 +3,7 @@ defmodule Greenbar do
   alias Greenbar.Template
 
   def compile!(name, source, opts \\ []) do
-    source = String.trim(source)
+    source = Enum.join([String.trim(source), "\n"])
     case :gb_parser.scan_and_parse(source) do
       {:ok, parsed} ->
         template = Template.compile!(name, parsed, opts)

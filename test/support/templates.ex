@@ -68,4 +68,7 @@ Enabled Version: ~$bundle.enabled_version.version~
 
   end
 
+  def dangling_comment do
+    "This is a test.\n# ~count var=$item~"
+  end
 end

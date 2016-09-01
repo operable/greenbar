@@ -110,7 +110,7 @@ make_var(Name, Ops) -> {var, Name, Ops}.
 ensure_list(Value) when is_list(Value) -> Value;
 ensure_list(Value) -> [Value].
 
-drop_leading_eol({text, <<"\n">>}) -> nil;
+drop_leading_eol({text, <<"\n">>}) -> [];
 drop_leading_eol([{text, <<"\n">>}|T]) -> T;
 drop_leading_eol([{text, <<$\n, Text/binary>>}|T]) ->
   [{text, <<$\n, Text/binary>>}|T];
