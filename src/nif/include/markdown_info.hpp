@@ -14,7 +14,8 @@ namespace greenbar {
     MD_HEADER,
     MD_ITALICS,
     MD_BOLD,
-    MD_LINK
+    MD_LINK,
+    MD_NONE
   };
 
   class MarkdownInfo {
