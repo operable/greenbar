@@ -34,12 +34,7 @@ defmodule Greenbar.Generator do
   def emit({:tag, name, nil, nil}) do
     quote bind_quoted: [name: name] do
       tag_mod = Greenbar.Runtime.get_tag!(scope, name)
-      {tag_output, scope} = Greenbar.Runtime.render_tag!(tag_mod, nil, nil, scope)
-      buffer = if tag_output != nil do
-        Greenbar.Runtime.add_to_buffer(%{name: :text, text: tag_output}, buffer)
-      else
-        buffer
-      end
+      {scope, buffer} = Greenbar.Runtime.render_tag!(tag_mod, nil, scope, buffer)
     end
   end
   def emit({:tag, name, attrs, nil}) do
@@ -47,12 +42,7 @@ defmodule Greenbar.Generator do
     quote bind_quoted: [name: name, tag_attr_exprs: tag_attr_exprs] do
       attrs = tag_attr_exprs
       tag_mod = Greenbar.Runtime.get_tag!(scope, name)
-      {tag_output, scope} = Greenbar.Runtime.render_tag!(tag_mod, attrs, scope)
-      buffer = if tag_output != nil do
-        Greenbar.Runtime.add_to_buffer(%{name: :text, text: tag_output}, buffer)
-      else
-        buffer
-      end
+      {scope, buffer} = Greenbar.Runtime.render_tag!(tag_mod, attrs, scope, buffer)
     end
   end
   def emit({:tag, name, attrs, body}) do

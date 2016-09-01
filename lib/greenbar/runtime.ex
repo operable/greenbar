@@ -3,6 +3,16 @@ defmodule Greenbar.Runtime do
   alias Piper.Common.Scope.Scoped
   alias Greenbar.EvaluationError
 
+  defmacrop raise_eval_error(reason) do
+    quote do
+      if is_binary(unquote(reason)) do
+        raise Greenbar.EvalautionError, message: unquote(reason)
+      else
+        raise Greenbar.EvaluationError, message: "#{inspect unquote(reason), pretty: true}"
+      end
+    end
+  end
+
   def var_to_value(scope, var_name, ops \\ nil)
   def var_to_value(scope, var_name, nil) do
     case Scoped.lookup(scope, var_name) do
@@ -65,24 +75,24 @@ defmodule Greenbar.Runtime do
     end
   end
 
-  def render_tag!(tag_mod, attrs, scope) do
+  def render_tag!(tag_mod, attrs, scope, buffer) do
     case tag_mod.render(attrs, scope) do
       {:halt, output, scope} ->
-        {output, scope}
-      {:error, reason} when is_binary(reason) ->
-        raise Greenbar.EvaluationError, message: reason
+        {scope, add_tag_output!(output, buffer, tag_mod)}
       {:error, reason} ->
-        raise Greenbar.EvaluationError, message: "#{inspect reason, pretty: true}"
+        raise_eval_error(reason)
     end
   end
 
   def render_tag!(tag_mod, attrs, body_fn, scope, buffer) do
     case tag_mod.render(attrs, scope) do
       {:cont, output, scope, body_scope} ->
-        buffer = append_output(buffer, output)
+        buffer = add_tag_output!(output, buffer, tag_mod)
         render_tag!(tag_mod, attrs, body_fn, scope, body_fn.(body_scope, buffer))
       {:halt, output, scope} ->
-        {scope, append_output(buffer, output)}
+        {scope, add_tag_output!(output, buffer, tag_mod)}
+      {:error, reason} ->
+        raise_eval_error(reason)
     end
   end
 
@@ -96,7 +106,21 @@ defmodule Greenbar.Runtime do
   def stringify_value(value) when is_binary(value), do: value
   def stringify_value(value), do: "#{value}"
 
-  defp append_output(buffer, nil), do: buffer
-  defp append_output(buffer, output), do: add_to_buffer(%{name: :text, text: output}, buffer)
+  defp add_tag_output!(nil, buffer, _tag_mod), do: buffer
+  defp add_tag_output!(output, buffer, _tag_mod) when is_binary(output) do
+    add_to_buffer(%{name: :text, text: output}, buffer)
+  end
+  defp add_tag_output!(%{name: :text}=output, buffer, _tag_mod) do
+    add_to_buffer(output, buffer)
+  end
+  defp add_tag_output!(%{name: :newline}=output, buffer, _tag_mod) do
+    add_to_buffer(output, buffer)
+  end
+  defp add_tag_output!(outputs, buffer, tag_mod) when is_list(outputs) do
+    Enum.reduce(outputs, buffer, fn(output, buffer) -> add_tag_output!(output, buffer, tag_mod) end)
+  end
+  defp add_tag_output!(output, _, tag_mod) do
+    raise Greenbar.EvaluationError, message: "Tag '#{tag_mod.name()}' returned invalid output: #{inspect output, pretty: true}"
+  end
 
 end
