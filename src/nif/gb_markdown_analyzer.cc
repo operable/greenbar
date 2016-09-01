@@ -32,7 +32,8 @@ static int gb_markdown_link(hoedown_buffer *ob, const hoedown_buffer *content, c
                      const hoedown_renderer_data *data);
 static void gb_markdown_normal_text(hoedown_buffer *ob, const hoedown_buffer *text, const hoedown_renderer_data *data);
 
-#define GB_HOEDOWN_EXTENSIONS (hoedown_extensions) (HOEDOWN_EXT_DISABLE_INDENTED_CODE | HOEDOWN_EXT_SPACE_HEADERS | HOEDOWN_EXT_MATH_EXPLICIT)
+#define GB_HOEDOWN_EXTENSIONS (hoedown_extensions) (HOEDOWN_EXT_DISABLE_INDENTED_CODE | HOEDOWN_EXT_SPACE_HEADERS | \
+                                                    HOEDOWN_EXT_MATH_EXPLICIT | HOEDOWN_EXT_NO_INTRA_EMPHASIS)
 #define GB_MAX_NESTING 4
 
 namespace greenbar {
@@ -65,7 +66,7 @@ namespace greenbar {
   }
 
   hoedown_document* new_hoedown_document(markdown_analyzer* renderer) {
-    return hoedown_document_new(renderer, (hoedown_extensions) 0, GB_MAX_NESTING);
+    return hoedown_document_new(renderer, (hoedown_extensions) GB_HOEDOWN_EXTENSIONS, GB_MAX_NESTING);
   }
 
   void free_markdown_analyzer(markdown_analyzer* analyzer) {
@@ -102,7 +103,18 @@ static void gb_markdown_header(hoedown_buffer *ob, const hoedown_buffer *content
 static void gb_markdown_paragraph(hoedown_buffer *ob, const hoedown_buffer *content, const hoedown_renderer_data *data) {
   auto collector = get_collector(data);
   collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_EOL));
-  if (content->size > 0) {
+  switch(content->size) {
+    // If content == "" return
+  case 0:
+    return;
+    // If content == "\n" return
+    // else fall through to default case
+  case 1:
+    if (memcmp(content->data, "\n", 1) == 0) {
+      return;
+    }
+    // Add text and EOL node
+  default:
     collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_TEXT, content));
     collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_EOL));
   }
@@ -148,6 +160,18 @@ static int gb_markdown_link(hoedown_buffer *ob, const hoedown_buffer *content, c
 
 static void gb_markdown_normal_text(hoedown_buffer *ob, const hoedown_buffer *text, const hoedown_renderer_data *data) {
   auto collector = get_collector(data);
-  auto info = new greenbar::MarkdownInfo(greenbar::MD_TEXT, text);
-  collector->push_back(info);
+  switch(text->size) {
+  case 0:
+    break;
+  case 1:
+    if (memcmp(text->data, "\n", 1) == 0) {
+      collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_EOL));
+      break;
+    }
+  default:
+    auto info = new greenbar::MarkdownInfo(greenbar::MD_TEXT, text);
+    collector->push_back(info);
+    break;
+  }
 }
+
