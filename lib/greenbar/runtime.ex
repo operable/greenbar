@@ -3,6 +3,8 @@ defmodule Greenbar.Runtime do
   alias Piper.Common.Scope.Scoped
   alias Greenbar.EvaluationError
 
+  @allowed_directives [:text, :newline, :bold, :italics, :fixed_width]
+
   defmacrop raise_eval_error(reason) do
     quote do
       if is_binary(unquote(reason)) do
@@ -110,10 +112,7 @@ defmodule Greenbar.Runtime do
   defp add_tag_output!(output, buffer, _tag_mod) when is_binary(output) do
     add_to_buffer(%{name: :text, text: output}, buffer)
   end
-  defp add_tag_output!(%{name: :text}=output, buffer, _tag_mod) do
-    add_to_buffer(output, buffer)
-  end
-  defp add_tag_output!(%{name: :newline}=output, buffer, _tag_mod) do
+  defp add_tag_output!(%{name: name}=output, buffer, _tag_mod) when name in @allowed_directives do
     add_to_buffer(output, buffer)
   end
   defp add_tag_output!(outputs, buffer, tag_mod) when is_list(outputs) do
