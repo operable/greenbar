@@ -13,7 +13,7 @@ defmodule Greenbar.DirectivesGenerator do
     parsed
     |> Enum.flat_map(&manually_split_newlines/1)
   end
-  defp process_markdown(node), do: [node]
+  defp process_markdown(value), do: [value]
 
   defp manually_split_newlines(%{name: :text, text: ""}), do: []
   defp manually_split_newlines(%{name: :text, text: "\n"}), do: [%{name: :newline}]
@@ -22,7 +22,7 @@ defmodule Greenbar.DirectivesGenerator do
     |> String.split("\n")
     |> Enum.map(&make_text_node/1)
   end
-  defp manually_split_newlines(node), do: [node]
+  defp manually_split_newlines(value), do: [value]
 
   defp make_text_node(""), do: %{name: :newline}
   defp make_text_node(text), do: %{name: :text, text: text}
@@ -36,11 +36,11 @@ defmodule Greenbar.DirectivesGenerator do
     end
   end
 
-  defp combine_text_nodes(node, nil), do: [node]
+  defp combine_text_nodes(value, nil), do: [value]
   defp combine_text_nodes(%{name: :text, text: t2text}, [%{name: :text, text: t1text}|t]) do
     combined = %{name: :text, text: Enum.join([t1text, t2text])}
     [combined|t]
   end
-  defp combine_text_nodes(node, accum), do: [node|accum]
+  defp combine_text_nodes(value, accum), do: [value|accum]
 
 end

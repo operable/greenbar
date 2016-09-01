@@ -49,7 +49,8 @@ defmodule Greenbar.ParserTest do
   end
 
   test "comments w/o terminating newlines are parsed" do
-    Greenbar.compile!("dangling_comment", Templates.dangling_comment)
+    {:ok, engine} = Greenbar.Engine.new()
+    Greenbar.Engine.compile!(engine, "dangling_comment", Templates.dangling_comment)
   end
 
 end
