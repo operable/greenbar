@@ -5,7 +5,7 @@ defmodule Greenbar.Tags.Title do
   def name, do: "title"
 
   def render(attrs, scope) do
-    {:halt, "# #{Map.get(attrs, "text")}", scope}
+    {:halt, "# #{Map.get(attrs, "var")}", scope}
   end
 
 end

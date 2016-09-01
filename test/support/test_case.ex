@@ -8,6 +8,7 @@ defmodule Greenbar.Test.Support.TestCase do
         alias Greenbar.Test.Support.Templates
 
         use ExUnit.Case
+
     end
   end
 

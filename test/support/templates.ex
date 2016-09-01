@@ -1,5 +1,7 @@
 defmodule Greenbar.Test.Support.Templates do
 
+  def documentation, do: "~$results[0].documentation~"
+
   def vm_list do
     """
 ~each var=$vms~
@@ -33,7 +35,6 @@ This is a test.
 
 ~each var=$items~
   ~$item.id~
-
 ~end~
 
 This has been a test.
@@ -44,10 +45,30 @@ This has been a test.
     """
 This is a test. There are ~count var=$items~ items.
 ~each var=$items~
-  ~$item~
+  `~$item~`
 ~end~
+
 
 There are ~count var=$items~ items.
 """
+  end
+
+  def bundles do
+    """
+Here are all my bundles:
+~br~
+~each var=$results as=bundle~
+ID: ~$bundle.id~
+Name: ~$bundle.name~
+# TODO: Need an "if" tag for this if there is no enabled version
+Enabled Version: ~$bundle.enabled_version.version~
+
+~end~
+"""
+
+  end
+
+  def dangling_comment do
+    "This is a test.\n# ~count var=$item~"
   end
 end

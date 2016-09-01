@@ -1,38 +1,46 @@
 defmodule Greenbar.DirectivesGenerator do
 
   def generate(outputs) do
-    outputs = consolidate_outputs(outputs)
-    Enum.map(outputs, &render_output/1)
+    outputs
+    |> Enum.flat_map(&process_markdown/1)
+    |> drop_trailing_newline
+    |> Enum.reduce(nil, &combine_text_nodes/2)
+    |> Enum.reverse
   end
 
-  defp render_output(output) when is_binary(output) do
-    Earmark.to_html(output, %Earmark.Options{breaks: true, smartypants: false,
-                                             renderer: Greenbar.DirectiveRenderer})
+  defp process_markdown(%{name: :text, text: text}) do
+    {:ok, parsed} = Greenbar.Markdown.analyze(text)
+    parsed
+    |> Enum.flat_map(&manually_split_newlines/1)
   end
+  defp process_markdown(value), do: [value]
 
-  defp consolidate_outputs(outputs) do
-    {globals, current} = Enum.reduce(outputs, {[], ""}, &combine_outputs/2)
-    globals = if current != "" do
-      [current|globals]
-    else
-      globals
+  defp manually_split_newlines(%{name: :text, text: ""}), do: []
+  defp manually_split_newlines(%{name: :text, text: "\n"}), do: [%{name: :newline}]
+  defp manually_split_newlines(%{name: :text, text: text}) do
+    text
+    |> String.split("\n")
+    |> Enum.map(&make_text_node/1)
+  end
+  defp manually_split_newlines(value), do: [value]
+
+  defp make_text_node(""), do: %{name: :newline}
+  defp make_text_node(text), do: %{name: :text, text: text}
+
+  defp drop_trailing_newline(result) do
+    case :lists.last(result) do
+      %{name: :newline} ->
+        Enum.slice(result, 0, Enum.count(result) - 1)
+      _ ->
+        result
     end
-    Enum.reverse(globals)
   end
 
-  defp combine_outputs(output, {globals, current}) when is_binary(output) do
-    {globals, :erlang.iolist_to_binary([current, output])}
+  defp combine_text_nodes(value, nil), do: [value]
+  defp combine_text_nodes(%{name: :text, text: t2text}, [%{name: :text, text: t1text}|t]) do
+    combined = %{name: :text, text: Enum.join([t1text, t2text])}
+    [combined|t]
   end
-  defp combine_outputs(output, {globals, current}) when is_map(output) do
-    globals = if current != "" do
-      [current|globals]
-    else
-      globals
-    end
-    {[output|globals], ""}
-  end
-  defp combine_outputs(output, {globals, current}) do
-    {globals, :erlang.iolist_to_binary([current, Poison.encode!(output)])}
-  end
+  defp combine_text_nodes(value, accum), do: [value|accum]
 
 end
