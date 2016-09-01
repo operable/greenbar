@@ -95,9 +95,19 @@ static void gb_markdown_blockcode(hoedown_buffer *ob, const hoedown_buffer *text
 }
 
 static void gb_markdown_header(hoedown_buffer *ob, const hoedown_buffer *content, int level,
-                                    const hoedown_renderer_data *data) {
+                               const hoedown_renderer_data *data) {
   auto collector = get_collector(data);
-  collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_HEADER, content, level));
+  if (content->size == 0) {
+    if (!collector->empty()) {
+      auto last_info = collector->back();
+      if (last_info->type == greenbar::MD_TEXT) {
+        last_info->type = greenbar::MD_HEADER;
+        last_info->level = level;
+      }
+    }
+  } else {
+    collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_HEADER, content, level));
+  }
 }
 
 static void gb_markdown_paragraph(hoedown_buffer *ob, const hoedown_buffer *content, const hoedown_renderer_data *data) {
@@ -134,13 +144,31 @@ static int gb_markdown_codespan(hoedown_buffer *ob, const hoedown_buffer *text, 
 
 static int gb_markdown_emphasis(hoedown_buffer *ob, const hoedown_buffer *content, const hoedown_renderer_data *data) {
   auto collector = get_collector(data);
-  collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_ITALICS, content));
+  if (content->size == 0) {
+    if (!collector->empty()) {
+      auto last_info = collector->back();
+      if (last_info->type == greenbar::MD_TEXT) {
+        last_info->type = greenbar::MD_ITALICS;
+      }
+    }
+  } else {
+    collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_ITALICS, content));
+  }
   return 1;
 }
 
 static int gb_markdown_double_emphasis(hoedown_buffer *ob, const hoedown_buffer *content, const hoedown_renderer_data *data) {
   auto collector = get_collector(data);
-  collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_BOLD, content));
+  if (content->size == 0) {
+    if (!collector->empty()) {
+      auto last_info = collector->back();
+      if (last_info->type == greenbar::MD_TEXT) {
+        last_info->type = greenbar::MD_BOLD;
+      }
+    }
+  } else {
+    collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_BOLD, content));
+  }
   return 1;
 }
 

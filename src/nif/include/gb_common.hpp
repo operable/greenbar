@@ -13,6 +13,7 @@ typedef struct {
   ERL_NIF_TERM gb_atom_italics;
   ERL_NIF_TERM gb_atom_bold;
   ERL_NIF_TERM gb_atom_link;
+  ERL_NIF_TERM gb_atom_level;
 } gb_priv_s;
 
 #endif

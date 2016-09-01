@@ -51,6 +51,10 @@ namespace greenbar {
       auto contents = enif_make_new_binary(env, this->text.size(), &text);
       memcpy(contents, this->text.c_str(), this->text.size());
       enif_make_map_put(env, retval, priv_data->gb_atom_text, text, &retval);
+      if (this->type == MD_HEADER) {
+        ERL_NIF_TERM level = enif_make_int(env, this->level);
+        enif_make_map_put(env, retval, priv_data->gb_atom_level, level, &retval);
+      }
     }
     return retval;
   }

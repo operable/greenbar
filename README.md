@@ -15,8 +15,8 @@ experience.
 
 ## How Does It Work?
 
-Greenbar templates use a combination of Markdown and custom Greenbar-specific tags to describe a template. Greenbar
-compiles templates to executable Elixir code and caches them for easy reuse. Executing a template generates a list of
+Greenbar templates use a combination of Markdown and custom Greenbar-specific tags to describe a template. Templates
+are compiled to executable Elixir code and then cached for easy reuse. Executing a template generates a list of
 directives which describe how to build the final output.
 
 ## Your First Template
@@ -65,6 +65,12 @@ iex(4)> Greenbar.Engine.eval!(engine, "hello", %{"user" => "Zaphod"})
 
 ## Syntax
 
-Greenbar uses Markdown for formatting text. Emphasis, strong, code, and code blocks are currently supported.
-Template variables and tags are referenced using tildes. See test/support/templates.ex for more examples.
+Standard Markdown notation for emphasis, strong, code line, and code blocks are implemented. Tables and (un)ordered lists
+are coming soon.
+
+Template variables and tags are referenced using tildes. See [test/support/templates.ex](https://github.com/operable/greenbar/blob/master/test/support/templates.ex) for more examples.
+
+## Tags
+
+Greenbar tags are designed to be extensible. See [lib/greenbar/tag.ex](https://github.com/operable/greenbar/blob/master/lib/greenbar/tag.ex) for details.
 
