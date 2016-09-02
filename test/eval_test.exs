@@ -68,4 +68,14 @@ defmodule Greenbar.EvalTest do
     Assertions.directive_structure(result, [:text, :newline, :fixed_width])
   end
 
+  test "not_empty? check works", context do
+    result = eval_template(context.engine, "not_empty_check", Templates.not_empty_check, %{"user_creators" => ["bob", "sue", "frank"]})
+    Assertions.directive_structure(result, [:newline, :text, :newline, :newline, # header
+                                            :text, :newline, # bob
+                                            :text, :newline, # sue
+                                            :text]) #frank
+    result = eval_template(context.engine, "not_empty_check", Templates.not_empty_check, %{})
+    assert length(result) == 0
+  end
+
 end

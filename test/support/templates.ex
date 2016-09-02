@@ -81,4 +81,17 @@ Testing the if tag.
 """
     end
 
+  def not_empty_check do
+    """
+~if cond=$user_creators not_empty?~
+~br~
+The following users can help you right here in chat:
+~br~
+~each var=$user_creators~
+~$item~
+~end~
+~end~
+"""
+    end
+
 end

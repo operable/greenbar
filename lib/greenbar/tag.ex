@@ -63,6 +63,7 @@ defmodule Greenbar.Tag do
 
   alias Piper.Common.Scope
   alias Piper.Common.Scope.Scoped
+  alias Greenbar.Runtime
 
   @type tag_attrs :: Map.t
   @type newline_output :: %{name: :newline}
@@ -92,6 +93,61 @@ defmodule Greenbar.Tag do
   def new_scope(parent) do
     {:ok, new_scope} = Scoped.set_parent(Scope.empty_scope(), parent)
     new_scope
+  end
+
+  defmacrop raise_eval_error(reason) do
+    quote do
+      if is_binary(unquote(reason)) do
+        raise Greenbar.EvaluationError, message: unquote(reason)
+      else
+        raise Greenbar.EvaluationError, message: "#{inspect unquote(reason), pretty: true}"
+      end
+    end
+  end
+
+  def render!(tag_mod, attrs, scope, buffer) when is_map(scope) and is_list(buffer) do
+    case tag_mod.render(attrs, scope) do
+      {action, scope} when action in [:again, :halt, :once] ->
+        {scope, buffer}
+      {action, output, scope} when action in [:again, :halt, :once] ->
+        {scope, Runtime.add_tag_output!(output, buffer, tag_mod)}
+      {:error, reason} ->
+        raise_eval_error(reason)
+    end
+  end
+
+  def render!(tag_mod, attrs, body_fn, scope, buffer) when is_map(scope) and is_list(buffer) do
+    result = tag_mod.render(attrs, scope)
+    case  result do
+      {:again, scope, body_scope} ->
+        render!(tag_mod, attrs, body_fn, scope, body_fn.(body_scope, buffer))
+      {:again, output, scope, body_scope} ->
+        buffer = Runtime.add_tag_output!(output, buffer, tag_mod)
+        buffer = render_body!(body_fn, body_scope, buffer)
+        render!(tag_mod, attrs, body_fn, scope, buffer)
+      {:once, scope, body_scope} ->
+        buffer = render_body!(body_fn, body_scope, buffer)
+        {scope, buffer}
+      {:once, output, scope, body_scope} ->
+        buffer = Runtime.add_tag_output!(output, buffer, tag_mod)
+        buffer = render_body!(body_fn, body_scope, buffer)
+        {scope, buffer}
+      {:halt, output, scope} ->
+        {scope, Runtime.add_tag_output!(output, buffer, tag_mod)}
+      {:halt, scope} ->
+        {scope, buffer}
+      {:error, reason} ->
+        raise_eval_error(reason)
+    end
+  end
+
+  defp render_body!(body_fn, scope, buffer) do
+    case body_fn.(scope, buffer) do
+      {_, buffer} ->
+        buffer
+      buffer when is_list(buffer) ->
+        buffer
+    end
   end
 
 end

@@ -42,7 +42,7 @@ defmodule Greenbar.Tags.Each do
   def render(attrs, scope) do
     case get_remaining(attrs, scope) do
       nil ->
-        {:error, "var attribute not set"}
+        {:halt, scope}
       [] ->
         {:halt, scope}
       [h|t] ->
