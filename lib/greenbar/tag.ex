@@ -1,29 +1,28 @@
 defmodule Greenbar.Tag do
 
   @moduledoc """
-  A behaviour module for implementing custom Greenbar tags.
+  A behaviour defining the API contract between Greenbar's rendering
+  logic and custom extensions.
 
-  Greenbar tags are modules which are called during template rendering.
-  Tags are processed before Greenbar expands Markdown into render directives.
+  Tags are a way to expose custom functionality to Greenbar templates
+  without modifying the template engine directly.
+
+  Greenbar processes all tags first before generating render directives
+  from the resulting Markdown. Tags can emit plain text, Markdown-formatted text,
+  or render directives.
+
+  # Tag Syntax
 
   Greenbar supports three different tag call syntaxes within a template.
 
   ### 1. Tag name only
-  Example:
+
   ```
   ~timestamp~
   ```
 
-  Greenbar will call the corresponding tag module's `render/2` function  with an
-  empty attribute map. The module can return one of the following values:
-
-  * `{:halt | :once | :again, text}` where `text` is a Markdown formatted Elixir string. This will cause Greenbar
-    to replace the literal tag text with the returned string.
-  * `{:error, reason}` where `reason` is any Elixir term. Greenbar will raise `EvaluationError`
-    and abort template evaluation.
-
   ### 2. Tag name with one or more attributes
-  Example:
+
   ```
   ~count var=$users max=5~
   ```
@@ -33,12 +32,33 @@ defmodule Greenbar.Tag do
   Tag processing occurs as in #1.
 
   ### 3. Tag with body
-  Example:
+
   ```
   ~each var=$users as=user~
     Name: ~$user.first_name~ ~$user.last_name~
   ~end~
+
   ```
+  The tag's body content -- all template content ocurring between the tag and its matching `end` statement --
+  will be evaluated none, one, or multiple times depending on the value the tag returns from its `render/2` function.
+
+
+  # Controlling Template Execution
+
+  Tags can control template execution by the value returned from `render/2`.
+
+  * `{:halt, scope}` -- the tag has completed and the template should continue processing.
+  * `{:halt, output, scope}` -- the tag has completed and generated output. The output will be written
+    to the render buffer before processing the rest of the template.
+  * `{:again, scope, body_scope}` -- execution should return to the tag after evaluating it's body.
+    This return value is treated as `{:halt, scope}` when the tag lacks body content.
+  * `{:once, scope, body_scope}` -- template execution should proceed after evaluating the tag's body
+    exactly once. This return value is treated as `{:halt, scope}` when the tag lacks body content.
+  * `{:again | :once, output, scope, body_scope}` -- identical to the output-less versions above except
+    `output` is written to the render buffer before continuing.
+  * `{:error, reason}` -- abort template execution and raise `Greenbar.EvaluationError`. `reason`, or a
+    its textual version, will be stored in the error's `message` field.
+
   """
 
   alias Piper.Common.Scope
