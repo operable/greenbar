@@ -4,7 +4,7 @@ defmodule Greenbar.DirectivesGenerator do
     outputs
     |> Enum.flat_map(&process_markdown/1)
     |> drop_trailing_newline
-    |> Enum.reduce(nil, &combine_text_nodes/2)
+    |> Enum.reduce([], &combine_text_nodes/2)
     |> Enum.reverse
   end
 
@@ -27,6 +27,7 @@ defmodule Greenbar.DirectivesGenerator do
   defp make_text_node(""), do: %{name: :newline}
   defp make_text_node(text), do: %{name: :text, text: text}
 
+  defp drop_trailing_newline([]), do: []
   defp drop_trailing_newline(result) do
     case :lists.last(result) do
       %{name: :newline} ->
@@ -36,7 +37,7 @@ defmodule Greenbar.DirectivesGenerator do
     end
   end
 
-  defp combine_text_nodes(value, nil), do: [value]
+  defp combine_text_nodes(value, []), do: [value]
   defp combine_text_nodes(%{name: :text, text: t2text}, [%{name: :text, text: t1text}|t]) do
     combined = %{name: :text, text: Enum.join([t1text, t2text])}
     [combined|t]

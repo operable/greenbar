@@ -41,6 +41,12 @@ defmodule Greenbar.Runtime do
     stringify_value(var_to_value(scope, var_name, ops))
   end
 
+  def empty?(value) when is_list(value), do: Enum.count(value) == 0
+  def empty?(_), do: false
+
+  def bound?(nil), do: false
+  def bound?(_), do: true
+
   def eval_ops!(ops, value, var_name) do
     Enum.reduce(ops, value, &(eval_op!(var_name, &1, &2)))
   end
@@ -78,23 +84,31 @@ defmodule Greenbar.Runtime do
   end
 
   def render_tag!(tag_mod, attrs, scope, buffer) do
-    case tag_mod.render(attrs, scope) do
-      {:halt, output, scope} ->
-        {scope, add_tag_output!(output, buffer, tag_mod)}
-      {:error, reason} ->
-        raise_eval_error(reason)
+    if skip_tag?(attrs) do
+      {scope, buffer}
+    else
+      case tag_mod.render(attrs, scope) do
+        {:halt, output, scope} ->
+          {scope, add_tag_output!(output, buffer, tag_mod)}
+        {:error, reason} ->
+          raise_eval_error(reason)
+      end
     end
   end
 
   def render_tag!(tag_mod, attrs, body_fn, scope, buffer) do
-    case tag_mod.render(attrs, scope) do
-      {:cont, output, scope, body_scope} ->
-        buffer = add_tag_output!(output, buffer, tag_mod)
-        render_tag!(tag_mod, attrs, body_fn, scope, body_fn.(body_scope, buffer))
-      {:halt, output, scope} ->
-        {scope, add_tag_output!(output, buffer, tag_mod)}
-      {:error, reason} ->
-        raise_eval_error(reason)
+    if skip_tag?(attrs) do
+      {scope, buffer}
+    else
+      case tag_mod.render(attrs, scope) do
+        {:cont, output, scope, body_scope} ->
+          buffer = add_tag_output!(output, buffer, tag_mod)
+          render_tag!(tag_mod, attrs, body_fn, scope, body_fn.(body_scope, buffer))
+        {:halt, output, scope} ->
+          {scope, add_tag_output!(output, buffer, tag_mod)}
+        {:error, reason} ->
+          raise_eval_error(reason)
+      end
     end
   end
 
@@ -107,6 +121,10 @@ defmodule Greenbar.Runtime do
   def stringify_value(value) when is_list(value) or is_map(value), do: Poison.encode!(value)
   def stringify_value(value) when is_binary(value), do: value
   def stringify_value(value), do: "#{value}"
+
+  defp skip_tag?(attrs) do
+    Map.get(attrs, "when", true) == false
+  end
 
   defp add_tag_output!(nil, buffer, _tag_mod), do: buffer
   defp add_tag_output!(output, buffer, _tag_mod) when is_binary(output) do

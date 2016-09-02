@@ -1,6 +1,7 @@
 defmodule Greenbar.Engine do
 
-  @default_tags [Greenbar.Tags.Title, Greenbar.Tags.Count, Greenbar.Tags.Each, Greenbar.Tags.Break]
+  @default_tags [Greenbar.Tags.Title, Greenbar.Tags.Count, Greenbar.Tags.Each,
+                 Greenbar.Tags.Break, Greenbar.Tags.If]
 
   defstruct [tags: %{}, templates: %{}]
 

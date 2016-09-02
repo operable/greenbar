@@ -7,6 +7,14 @@ STRING                  = "(\\\^.|\\.|[^"])*"
 VAR                     = \$[a-zA-Z][a-zA-Z0-9_]*
 EXPR_NAME               = [a-zA-Z][a-zA-Z0-9_]*
 ASSIGN                  = \=
+GREATER_THAN            = >
+GREATER_THAN_EQ         = >\=
+LESS_THAN               = <
+LESS_THAN_EQ            = <\=
+EQ                      = \=\=
+NEQ                     = !\=
+EMPTY                   = empty\?
+BOUND                   = bound\?
 DOT                     = \.
 BRACKET                 = \[|\]
 SKIPPED                 = \s
@@ -19,6 +27,14 @@ Rules.
 {FLOAT}                 : {token, {float, TokenLine, ?_FLOAT(TokenChars)}}.
 {STRING}                : {token, {string, TokenLine, ?_ES(TokenChars)}}.
 {VAR}                   : [$$|VarName] = TokenChars, {token, {var, TokenLine, ?_ES(VarName)}}.
+{EQ}                    : {token, {equal, TokenLine, <<"==">>}}.
+{NEQ}                   : {token, {not_equal, TokenLine, <<"!=">>}}.
+{GREATER_THAN_EQ}       : {token, {gte, TokenLine, <<">=">>}}.
+{GREATER_THAN}          : {token, {gt, TokenLine, <<">">>}}.
+{LESS_THAN_EQ}          : {token, {lte, TokenLine, <<"<=">>}}.
+{LESS_THAN}             : {token, {lt, TokenLine, <<"<">>}}.
+{EMPTY}                 : {token, {empty, TokenLine, <<"empty?">>}}.
+{BOUND}                 : {token, {bound, TokenLine, <<"bound?">>}}.
 {ASSIGN}                : {token, {assign, TokenLine, <<"=">>}}.
 {DOT}                   : {token, {dot, TokenLine, <<".">>}}.
 {BRACKET}               : {token, which_bracket(TokenLine, TokenChars)}.

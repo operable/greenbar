@@ -6,11 +6,11 @@ dot lbracket rbracket
 
 expr_name expr_end eol
 
-assign.
+assign empty not_empty gt gte lt lte equal not_equal bound.
 
 Nonterminals
 
-template template_exprs tag_attrs tag_attr var_expr var_ops.
+template template_exprs tag_attrs tag_attr var_value var_expr var_ops.
 
 Rootsymbol template.
 
@@ -28,7 +28,7 @@ template_exprs ->
 template_exprs ->
   expr_name tag_attrs template_exprs expr_end : make_tag(value_from('$1'), '$2', '$3').
 template_exprs ->
-  var_expr : '$1'.
+  var_value : '$1'.
 template_exprs ->
   eol : eol.
 template_exprs ->
@@ -40,7 +40,7 @@ template_exprs ->
 template_exprs ->
   expr_name tag_attrs template_exprs expr_end template_exprs : combine(make_tag(value_from('$1'), '$2', '$3'), drop_leading_eol('$5')).
 template_exprs ->
-  var_expr template_exprs : combine('$1', '$2').
+  var_value template_exprs : combine('$1', '$2').
 template_exprs ->
   eol template_exprs : combine(eol, '$2').
 
@@ -58,11 +58,64 @@ tag_attr ->
 tag_attr ->
   expr_name assign expr_name : {assign_tag_attr, value_from('$1'), name_to_string('$3')}.
 tag_attr ->
+  expr_name assign var_value : {assign_tag_attr, value_from('$1'), '$3'}.
+tag_attr ->
   expr_name assign var_expr : {assign_tag_attr, value_from('$1'), '$3'}.
 
 var_expr ->
-  var : make_var(value_from('$1')).
+  var_value gt integer : {gt, '$1', '$3'}.
 var_expr ->
+  var_value gte integer : {gte, '$1', '$3'}.
+var_expr ->
+  var_value lt integer : {lt, '$1', '$3'}.
+var_expr ->
+  var_value lte integer : {lte, '$1', '$3'}.
+var_expr ->
+  var_value equal integer : {equal, '$1', '$3'}.
+var_expr ->
+  var_value not_equal integer : {not_equal, '$1', '$3'}.
+var_expr ->
+  var_value gt float : {gt, '$1', '$3'}.
+var_expr ->
+  var_value gte float : {gte, '$1', '$3'}.
+var_expr ->
+  var_value lt float : {lt, '$1', '$3'}.
+var_expr ->
+  var_value lte float : {lte, '$1', '$3'}.
+var_expr ->
+  var_value equal float : {equal, '$1', '$3'}.
+var_expr ->
+  var_value not_equal float : {not_equal, '$1', '$3'}.
+var_expr ->
+  var_value gt var_value : {gt, '$1', '$3'}.
+var_expr ->
+  var_value gte var_value : {gte, '$1', '$3'}.
+var_expr ->
+  var_value lt var_value : {lt, '$1', '$3'}.
+var_expr ->
+  var_value lte var_value : {lte, '$1', '$3'}.
+var_expr ->
+  var_value equal var_value : {equal, '$1', '$3'}.
+var_expr ->
+  var_value not_equal var_value : {not_equal, '$1', '$3'}.
+var_expr ->
+  var_value equal string : {equal, '$1', '$3'}.
+var_expr ->
+  var_value not_equal string : {equal, '$1', '$3'}.
+var_expr ->
+  var_value equal expr_name : {equal, '$1', name_to_string('$3')}.
+var_expr ->
+  var_value not_equal expr_name : {not_equal, '$1', name_to_string('$3')}.
+var_expr ->
+  var_value empty : {empty, '$1'}.
+var_expr ->
+  var_value not_empty : {not_empty, '$1'}.
+var_expr ->
+  var_value bound : {bound, '$1'}.
+
+var_value ->
+  var : make_var(value_from('$1')).
+var_value ->
   var var_ops : make_var(value_from('$1'), '$2').
 
 var_ops ->
