@@ -8,7 +8,7 @@ defmodule Greenbar.Runtime do
   defmacrop raise_eval_error(reason) do
     quote do
       if is_binary(unquote(reason)) do
-        raise Greenbar.EvalautionError, message: unquote(reason)
+        raise Greenbar.EvaluationError, message: unquote(reason)
       else
         raise Greenbar.EvaluationError, message: "#{inspect unquote(reason), pretty: true}"
       end
