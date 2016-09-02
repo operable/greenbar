@@ -50,6 +50,7 @@ defmodule Greenbar.Mixfile do
       # Direct dependencies
       {:piper, github: "operable/piper", branch: "kevsmith/templates"},
       {:hoedown, github: "hoedown/hoedown", branch: "master", app: false},
+      {:poison, "~> 2.2"}, # also comes in via Piper
 
       # Test and Development
       {:mix_test_watch, "~> 0.2", only: [:dev, :test]},
