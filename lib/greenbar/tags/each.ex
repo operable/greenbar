@@ -1,5 +1,36 @@
 defmodule Greenbar.Tags.Each do
 
+  @moduledoc """
+  Iterates over a list binding each item to a variable scoped to the tag's
+  body.
+
+  ## Examples
+
+  * Using the default body variable `item`
+  ```
+  ~each var=$users~
+  First Name: ~$item.first_name~
+  Last Name: ~$item.last_name~
+  ~end~
+  ```
+
+  * Customizing the body variable
+  ```
+  ~each var=$users as=user~
+  First Name: ~$user.first_name~
+  Last Name: ~$user.last_name~
+  ~end~
+  ```
+
+  Given the variable `$users` is bound `[%{"first_name" => "John", "last_name" => "Doe"}]` then both
+  of the above templates would produce:
+
+  ```
+  First Name: John
+  Last Name: Doe
+  ```
+  """
+
   @remaining_key "__remaining__"
 
   use Greenbar.Tag
