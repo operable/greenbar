@@ -5,7 +5,6 @@ defmodule Greenbar.Tags.Each do
   use Greenbar.Tag
 
   alias Piper.Common.Scope.Scoped
-  alias Piper.Common.Ast.Variable
 
   def name, do: "each"
 
@@ -14,14 +13,13 @@ defmodule Greenbar.Tags.Each do
       nil ->
         {:error, "var attribute not set"}
       [] ->
-        {:halt, nil, scope}
+        {:halt, scope}
       [h|t] ->
-        var_name = get_attr(attrs, "as") || "item"
-        child_scope = new_scope
+        var_name = get_attr(attrs, "as", "item")
+        child_scope = new_scope(scope)
         {:ok, child_scope} = Scoped.set(child_scope, var_name, h)
         {:ok, scope} = set_remaining(scope, t)
-        {:ok, child_scope} = link_scopes(scope, child_scope)
-        {:cont, nil, scope, child_scope}
+        {:again, nil, scope, child_scope}
     end
   end
 
@@ -31,13 +29,9 @@ defmodule Greenbar.Tags.Each do
         case get_attr(attrs, "var") do
           {:not_found, _} ->
             nil
-          %Variable{value: value} ->
-            value
           value ->
             value
         end
-      {:ok, %Variable{value: value}} ->
-        value
       {:ok, value} ->
         value
     end

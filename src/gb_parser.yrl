@@ -176,8 +176,6 @@ drop_leading_eol([{text, <<$\n, Text/binary>>}|T]) ->
 drop_leading_eol(V) ->
   V.
 
-name_to_string({expr_name, Pos, Value}) -> {string, Pos, Value, nil}.
-
 pp_error({_, gb_lexer, {illegal, Chars}}) ->
   Chars1 = string:strip(Chars, right, $\n),
   %% Try to classify error
@@ -200,3 +198,6 @@ pp_error({_, gb_parser, ["syntax error before: ", [[60, 60, Chars, 62, 62]]]}) -
 pp_error({_, Module, Error}) ->
   io:format("~p ~p~n", [Module, Error]),
   {error, iolist_to_binary(Module:format_error(Error))}.
+
+name_to_string({expr_name, Pos, Value}) -> {string, Pos, Value}.
+

@@ -88,8 +88,10 @@ defmodule Greenbar.Runtime do
       {scope, buffer}
     else
       case tag_mod.render(attrs, scope) do
-        {:halt, output, scope} ->
+        {action, output, scope} when action in [:again, :halt, :once] ->
           {scope, add_tag_output!(output, buffer, tag_mod)}
+        {:halt, scope} ->
+          {scope, buffer}
         {:error, reason} ->
           raise_eval_error(reason)
       end
@@ -101,11 +103,17 @@ defmodule Greenbar.Runtime do
       {scope, buffer}
     else
       case tag_mod.render(attrs, scope) do
-        {:cont, output, scope, body_scope} ->
+        {:again, output, scope, body_scope} ->
           buffer = add_tag_output!(output, buffer, tag_mod)
           render_tag!(tag_mod, attrs, body_fn, scope, body_fn.(body_scope, buffer))
+        {:once, output, scope, body_scope} ->
+          buffer = add_tag_output!(output, buffer, tag_mod)
+          buffer = body_fn.(body_scope, buffer)
+          {scope, buffer}
         {:halt, output, scope} ->
           {scope, add_tag_output!(output, buffer, tag_mod)}
+        {:halt, scope} ->
+          {scope, buffer}
         {:error, reason} ->
           raise_eval_error(reason)
       end
@@ -122,6 +130,7 @@ defmodule Greenbar.Runtime do
   def stringify_value(value) when is_binary(value), do: value
   def stringify_value(value), do: "#{value}"
 
+  defp skip_tag?(nil), do: false
   defp skip_tag?(attrs) do
     Map.get(attrs, "when", true) == false
   end

@@ -17,7 +17,7 @@ defmodule Greenbar.Tag do
   Greenbar will call the corresponding tag module's `render/2` function  with an
   empty attribute map. The module can return one of the following values:
 
-  * `{:halt, text}` where `text` is a Markdown formatted Elixir string. This will cause Greenbar
+  * `{:halt | :once | :again, text}` where `text` is a Markdown formatted Elixir string. This will cause Greenbar
     to replace the literal tag text with the returned string.
   * `{:error, reason}` where `reason` is any Elixir term. Greenbar will raise `EvaluationError`
     and abort template evaluation.
@@ -49,7 +49,8 @@ defmodule Greenbar.Tag do
   @type text_output :: %{name: :text, text: binary()}
   @type tag_output :: String.t | newline_output | text_output | nil
 
-  @type continue_response :: {:cont, tag_output, Scoped.t, Scoped.t} | {:cont, [tag_output], Scoped.t, Scoped.t}
+  @type continue_response :: {:again, tag_output, Scoped.t, Scoped.t} | {:again, [tag_output], Scoped.t, Scoped.t}
+  @type continue_once_response :: {:once, tag_output, Scoped.t, Scoped.t} | {:once, [tag_output], Scoped.t, Scoped.t}
   @type done_response :: {:halt, tag_output, Scoped.t} | {:halt, [tag_output], Scoped.t}
   @type error_response :: {:error, term}
 
@@ -60,20 +61,17 @@ defmodule Greenbar.Tag do
     quote do
       @behaviour Greenbar.Tag
 
-      import unquote(__MODULE__), only: [get_attr: 2, new_scope: 0, link_scopes: 2]
+      import unquote(__MODULE__), only: [get_attr: 2, get_attr: 3, new_scope: 1]
     end
   end
 
-  def get_attr(attrs, name) do
-    Map.get(attrs, name)
+  def get_attr(attrs, name, default \\ nil) do
+    Map.get(attrs, name, default)
   end
 
-  def new_scope() do
-    Scope.empty_scope()
-  end
-
-  def link_scopes(parent, child) do
-    Scoped.set_parent(child, parent)
+  def new_scope(parent) do
+    {:ok, new_scope} = Scoped.set_parent(Scope.empty_scope(), parent)
+    new_scope
   end
 
 end
