@@ -22,10 +22,12 @@ namespace greenbar {
   public:
     MarkdownInfoType type;
     std::string text;
+    std::string url;
     int level;
     MarkdownInfo(MarkdownInfoType info_type);
     MarkdownInfo(MarkdownInfoType info_type, const hoedown_buffer* buffer);
-    MarkdownInfo(MarkdownInfoType, const hoedown_buffer* buffer, int info_level);
+    MarkdownInfo(MarkdownInfoType info_type, const hoedown_buffer* buffer, int info_level);
+    MarkdownInfo(MarkdownInfoType info_type, const hoedown_buffer* text, const hoedown_buffer* url);
     ERL_NIF_TERM to_erl_term(ErlNifEnv* env);
     virtual ~MarkdownInfo();
   };

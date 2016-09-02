@@ -87,6 +87,9 @@ static int on_load(ErlNifEnv* env, void** priv, ERL_NIF_TERM load_info) {
   if (enif_make_existing_atom(env, "level", &priv_data->gb_atom_level, ERL_NIF_LATIN1) == false) {
     priv_data->gb_atom_level = enif_make_atom(env, "level");
   }
+  if (enif_make_existing_atom(env, "url", &priv_data->gb_atom_url, ERL_NIF_LATIN1) == false) {
+    priv_data->gb_atom_url = enif_make_atom(env, "url");
+  }
 
   *priv = (void *) priv_data;
   return 0;

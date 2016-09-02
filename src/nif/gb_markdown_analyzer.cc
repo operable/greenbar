@@ -182,7 +182,17 @@ static int gb_markdown_linebreak(hoedown_buffer *ob, const hoedown_renderer_data
 static int gb_markdown_link(hoedown_buffer *ob, const hoedown_buffer *content, const hoedown_buffer *link, const hoedown_buffer *title,
                             const hoedown_renderer_data *data) {
   auto collector = get_collector(data);
-  collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_LINK, link));
+  if (collector->empty()) {
+    collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_LINK, title, link));
+  } else {
+    auto last_info = collector->back();
+    if (last_info->type == greenbar::MD_TEXT) {
+      last_info->type = greenbar::MD_LINK;
+      last_info->url = std::string((char *)link->data, link->size);
+    } else {
+      collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_LINK, title, link));
+    }
+  }
   return 1;
 }
 

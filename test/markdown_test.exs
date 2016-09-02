@@ -41,4 +41,13 @@ defmodule Greenbar.MarkdownTest do
                        %{name: :header, level: 3,
                          text: "H3"}]
   end
+
+  test "links are parsed correctly" do
+    {:ok, output} = Markdown.analyze("[operable](https://operable.io)")
+    assert output === [%{name: :link,
+                         text: "operable",
+                         url: "https://operable.io"},
+                       %{name: :newline}]
+  end
+
 end

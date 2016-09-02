@@ -26,18 +26,28 @@ namespace greenbar {
   MarkdownInfo::MarkdownInfo(MarkdownInfoType info_type, const hoedown_buffer* buf) {
     type = info_type;
     text = std::string((char*) buf->data, buf->size);
+    url = "";
     level = -1;
   }
 
   MarkdownInfo::MarkdownInfo(MarkdownInfoType info_type, const hoedown_buffer* buf, int info_level) {
     type = info_type;
     text = std::string((char*) buf->data, buf->size);
+    url = "";
     level = info_level;
+  }
+
+  MarkdownInfo::MarkdownInfo(MarkdownInfoType info_type, const hoedown_buffer* title, const hoedown_buffer* link) {
+    type = info_type;
+    text = std::string((char*) title->data, title->size);
+    url = std::string((char*) link->data, link->size);
+    level = -1;
   }
 
   MarkdownInfo::MarkdownInfo(MarkdownInfoType info_type) {
     type = info_type;
     text = "";
+    url = "";
     level = -1;
   }
 
@@ -51,9 +61,17 @@ namespace greenbar {
       auto contents = enif_make_new_binary(env, this->text.size(), &text);
       memcpy(contents, this->text.c_str(), this->text.size());
       enif_make_map_put(env, retval, priv_data->gb_atom_text, text, &retval);
+
       if (this->type == MD_HEADER) {
         ERL_NIF_TERM level = enif_make_int(env, this->level);
         enif_make_map_put(env, retval, priv_data->gb_atom_level, level, &retval);
+      }
+
+      if (this->type == MD_LINK) {
+        ERL_NIF_TERM url;
+        auto contents = enif_make_new_binary(env, this->url.size(), &url);
+        memcpy(contents, this->url.c_str(), this->url.size());
+        enif_make_map_put(env, retval, priv_data->gb_atom_url, url, &retval);
       }
     }
     return retval;
