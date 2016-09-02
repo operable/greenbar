@@ -14,6 +14,7 @@ LESS_THAN_EQ            = <\=
 EQ                      = \=\=
 NEQ                     = !\=
 EMPTY                   = empty\?
+NOT_EMPTY               = not_empty\?
 BOUND                   = bound\?
 DOT                     = \.
 BRACKET                 = \[|\]
@@ -34,6 +35,7 @@ Rules.
 {LESS_THAN_EQ}          : {token, {lte, TokenLine, <<"<=">>}}.
 {LESS_THAN}             : {token, {lt, TokenLine, <<"<">>}}.
 {EMPTY}                 : {token, {empty, TokenLine, <<"empty?">>}}.
+{NOT_EMPTY}             : {token, {not_empty, TokenLine, <<"not_empty?">>}}.
 {BOUND}                 : {token, {bound, TokenLine, <<"bound?">>}}.
 {ASSIGN}                : {token, {assign, TokenLine, <<"=">>}}.
 {DOT}                   : {token, {dot, TokenLine, <<".">>}}.
