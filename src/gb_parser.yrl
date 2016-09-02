@@ -76,8 +76,7 @@ var_ops ->
 
 Erlang code.
 
--export([scan_and_parse/1,
-         drop_leading_eol/1]).
+-export([scan_and_parse/1]).
 
 scan_and_parse(Text) when is_binary(Text) ->
   case gb_lexer:scan(Text) of
