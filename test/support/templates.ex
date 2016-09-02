@@ -71,4 +71,14 @@ Enabled Version: ~$bundle.enabled_version.version~
   def dangling_comment do
     "This is a test.\n# ~count var=$item~"
   end
+
+  def if_tag do
+    """
+Testing the if tag.
+~if cond=$item bound?~
+~$item~
+~end~
+"""
+    end
+
 end

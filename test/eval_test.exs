@@ -58,4 +58,14 @@ defmodule Greenbar.EvalTest do
 
   end
 
+  test "if tag", context do
+    # Bound? fails
+    result = eval_template(context.engine, "if_tag", Templates.if_tag, %{})
+    Assertions.directive_structure(result, [:text])
+
+    # Bound? succeeds
+    result = eval_template(context.engine, "if_tag", Templates.if_tag, %{"item" => "`Kilroy was here`"})
+    Assertions.directive_structure(result, [:text, :newline, :fixed_width])
+  end
+
 end
