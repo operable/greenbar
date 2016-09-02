@@ -6,7 +6,7 @@ defmodule Greenbar.Tags.If do
 
   def render(attrs, scope) do
     if get_attr(attrs, "cond", false) do
-      {:once, nil, scope, new_scope(scope)}
+      {:once, scope, new_scope(scope)}
     else
       {:halt, scope}
     end
