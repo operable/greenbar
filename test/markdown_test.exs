@@ -50,4 +50,24 @@ defmodule Greenbar.MarkdownTest do
                        %{name: :newline}]
   end
 
+  test "unordered lists are parsed correctly" do
+    {:ok, output} = Markdown.analyze("* One\n* Two\n* Three\n")
+    assert output === [%{children: [%{children: [%{name: :text, text: "One"}, %{name: :newline}],
+                                      name: :list_item},
+                                    %{children: [%{name: :text, text: "Two"}, %{name: :newline}],
+                                      name: :list_item},
+                                    %{children: [%{name: :text, text: "Three"}, %{name: :newline}],
+                                      name: :list_item}], name: :unordered_list}]
+  end
+
+  test "ordered lists are parsed correctly" do
+    {:ok, output} = Markdown.analyze("1. Abc\n1. Def\n1. _Ghi_\n")
+    assert output === [%{children: [%{children: [%{name: :text, text: "Abc"}, %{name: :newline}],
+                                      name: :list_item},
+                                    %{children: [%{name: :text, text: "Def"}, %{name: :newline}],
+                                      name: :list_item},
+                                    %{children: [%{name: :italics, text: "Ghi"}, %{name: :newline}],
+                                      name: :list_item}], name: :ordered_list}]
+  end
+
 end
