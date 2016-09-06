@@ -24,5 +24,6 @@ clean:
 	@rm -f priv/greenbar_markdown.so
 
 priv/greenbar_markdown.so: $(SRCS) Makefile
+	rm -f $@
 	$(MAKE) -C $(HOEDOWN_PATH) libhoedown.a
 	$(CXX) $(CXXFLAGS) -shared $(LDFLAGS) -o $@ $(SRCS) $(HOEDOWN_PATH)/libhoedown.a
