@@ -48,7 +48,7 @@ defmodule Greenbar.Mixfile do
   defp deps do
     [
       # Direct dependencies
-      {:piper, github: "operable/piper", branch: "kevsmith/templates"},
+      {:piper, github: "operable/piper"},
       {:hoedown, github: "hoedown/hoedown", branch: "master", app: false},
       {:poison, "~> 2.2"}, # also comes in via Piper
 
