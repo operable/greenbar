@@ -1,6 +1,6 @@
 defmodule Greenbar.MarkdownTest do
 
-  alias Greenbar.Markdown
+  alias :greenbar_markdown, as: Markdown
 
   use ExUnit.Case
 
