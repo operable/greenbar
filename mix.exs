@@ -7,8 +7,7 @@ defmodule Mix.Tasks.Compile.Hoedown do
     if match? {:win32, _}, :os.type do
       Mix.raise("Windows not yet supported")
     else
-      File.mkdir_p! "priv"
-      {result, error_code} = System.cmd("make", [], stderr_to_stdout: true)
+      {result, error_code} = System.cmd("make", ["MIX_ENV=#{Mix.env}"], stderr_to_stdout: true)
       if error_code == 0 do
         IO.info(result)
         IO.info("(hoedown NIF) compilation complete.")

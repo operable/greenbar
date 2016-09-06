@@ -18,12 +18,9 @@ ifeq ($(shell uname),Darwin)
 	LDFLAGS += -dynamiclib -undefined dynamic_lookup
 endif
 
-all: priv/greenbar_markdown.so
+all: _build/$(MIX_ENV)/lib/greenbar/priv/greenbar_markdown.so
 
-clean:
-	@rm -f priv/greenbar_markdown.so
-
-priv/greenbar_markdown.so: $(SRCS) Makefile
-	mkdir -p priv
+_build/$(MIX_ENV)/lib/greenbar/priv/greenbar_markdown.so: $(SRCS) Makefile
+	mkdir -p $(shell dirname $@)
 	$(MAKE) -C $(HOEDOWN_PATH) libhoedown.a
 	$(CXX) $(CXXFLAGS) -shared $(LDFLAGS) -o $@ $(SRCS) $(HOEDOWN_PATH)/libhoedown.a
