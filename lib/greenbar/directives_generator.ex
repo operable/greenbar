@@ -9,7 +9,7 @@ defmodule Greenbar.DirectivesGenerator do
   end
 
   defp process_markdown(%{name: :text, text: text}) do
-    {:ok, parsed} = Greenbar.Markdown.analyze(text)
+    {:ok, parsed} = :greenbar_markdown.analyze(text)
     parsed
     |> Enum.flat_map(&manually_split_newlines/1)
   end
