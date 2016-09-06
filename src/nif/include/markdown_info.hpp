@@ -31,6 +31,6 @@ namespace greenbar {
     ERL_NIF_TERM to_erl_term(ErlNifEnv* env);
     virtual ~MarkdownInfo();
   };
-};
+}
 
 #endif

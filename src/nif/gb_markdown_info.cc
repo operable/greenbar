@@ -1,3 +1,4 @@
+#include <cstring>
 #include "erl_nif.h"
 #include "markdown_info.hpp"
 #include "gb_common.hpp"
