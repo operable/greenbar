@@ -15,6 +15,10 @@ typedef struct {
   ERL_NIF_TERM gb_atom_link;
   ERL_NIF_TERM gb_atom_level;
   ERL_NIF_TERM gb_atom_url;
+  ERL_NIF_TERM gb_atom_ordered_list;
+  ERL_NIF_TERM gb_atom_unordered_list;
+  ERL_NIF_TERM gb_atom_list_item;
+  ERL_NIF_TERM gb_atom_children;
 } gb_priv_s;
 
 #endif

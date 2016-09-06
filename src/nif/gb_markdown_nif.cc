@@ -90,6 +90,18 @@ static int on_load(ErlNifEnv* env, void** priv, ERL_NIF_TERM load_info) {
   if (enif_make_existing_atom(env, "url", &priv_data->gb_atom_url, ERL_NIF_LATIN1) == false) {
     priv_data->gb_atom_url = enif_make_atom(env, "url");
   }
+  if (enif_make_existing_atom(env, "ordered_list", &priv_data->gb_atom_ordered_list, ERL_NIF_LATIN1) == false) {
+    priv_data->gb_atom_ordered_list = enif_make_atom(env, "ordered_list");
+  }
+  if (enif_make_existing_atom(env, "unordered_list", &priv_data->gb_atom_unordered_list, ERL_NIF_LATIN1) == false) {
+    priv_data->gb_atom_unordered_list = enif_make_atom(env, "unordered_list");
+  }
+  if (enif_make_existing_atom(env, "list_item", &priv_data->gb_atom_list_item, ERL_NIF_LATIN1) == false) {
+    priv_data->gb_atom_list_item = enif_make_atom(env, "list_item");
+  }
+  if (enif_make_existing_atom(env, "children", &priv_data->gb_atom_children, ERL_NIF_LATIN1) == false) {
+    priv_data->gb_atom_children = enif_make_atom(env, "children");
+  }
 
   *priv = (void *) priv_data;
   return 0;
@@ -113,15 +125,16 @@ static ERL_NIF_TERM convert_results(ErlNifEnv *env, std::vector<greenbar::Markdo
   for(size_t i = 0; i < collector->size(); i++) {
     auto info = collector->at(i);
     // Don't add double EOLs to end of template
-    if (i == last_index && info->type == greenbar::MD_EOL) {
+    if (i == last_index && info->get_type() == greenbar::MD_EOL) {
       auto previous = collector->at(i - 1);
-      if (previous->type == greenbar::MD_EOL) {
+      if (previous->get_type() == greenbar::MD_EOL) {
         continue;
       }
     }
     head = info->to_erl_term(env);
     tail = enif_make_list_cell(env, head, tail);
   }
+
   return tail;
 }
 

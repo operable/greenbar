@@ -14,8 +14,8 @@ typedef hoedown_renderer markdown_analyzer;
 
 static void gb_markdown_blockcode(hoedown_buffer *ob, const hoedown_buffer *text, const hoedown_buffer *lang, const hoedown_renderer_data *data);
 static void gb_markdown_header(hoedown_buffer *ob, const hoedown_buffer *content, int level, const hoedown_renderer_data *data);
-// void gb_markdown_list(hoedown_buffer *ob, const hoedown_buffer *content, hoedown_list_flags flags, const hoedown_renderer_data *data);
-// void gb_markdown_listitem(hoedown_buffer *ob, const hoedown_buffer *content, hoedown_list_flags flags, const hoedown_renderer_data *data);
+static void gb_markdown_list(hoedown_buffer *ob, const hoedown_buffer *content, hoedown_list_flags flags, const hoedown_renderer_data *data);
+static void gb_markdown_listitem(hoedown_buffer *ob, const hoedown_buffer *content, hoedown_list_flags flags, const hoedown_renderer_data *data);
 static void gb_markdown_paragraph(hoedown_buffer *ob, const hoedown_buffer *content, const hoedown_renderer_data *data);
 // void gb_markdown_table(hoedown_buffer *ob, const hoedown_buffer *content, const hoedown_renderer_data *data);
 // void gb_markdown_table_header(hoedown_buffer *ob, const hoedown_buffer *content, const hoedown_renderer_data *data);
@@ -60,6 +60,8 @@ namespace greenbar {
     analyzer->autolink = gb_markdown_autolink;
     analyzer->link = gb_markdown_link;
     analyzer->linebreak = gb_markdown_linebreak;
+    analyzer->list = gb_markdown_list;
+    analyzer->listitem = gb_markdown_listitem;
     analyzer->normal_text = gb_markdown_normal_text;
     analyzer->opaque = (void *) new std::vector<greenbar::MarkdownInfo*>();
     return analyzer;
@@ -72,6 +74,9 @@ namespace greenbar {
   void free_markdown_analyzer(markdown_analyzer* analyzer) {
     if (analyzer->opaque != NULL) {
       auto collector = (std::vector<greenbar::MarkdownInfo*>*) analyzer->opaque;
+      for (size_t i = 0; i < collector->size(); i++) {
+        delete collector->at(i);
+      }
       delete collector;
     }
     free(analyzer);
@@ -88,31 +93,53 @@ static std::vector<greenbar::MarkdownInfo*>* get_collector(const hoedown_rendere
 }
 
 
+static bool set_previous(const hoedown_renderer_data *data, greenbar::MarkdownInfoType previousType, greenbar::MarkdownInfoType newType) {
+  bool retval = false;
+  auto collector = get_collector(data);
+  if (!collector->empty()) {
+    auto last_info = greenbar::as_leaf(collector->back());
+    if (last_info != nullptr && last_info->get_type() == previousType) {
+      last_info->set_type(newType);
+      retval = true;
+    }
+  }
+  return retval;
+}
+
+static bool set_previous(const hoedown_renderer_data *data, greenbar::MarkdownInfoType previousType, greenbar::MarkdownInfoType newType,
+                         int level) {
+  bool retval = false;
+  auto collector = get_collector(data);
+  if (!collector->empty()) {
+    auto last_info = greenbar::as_leaf(collector->back());
+    if (last_info != nullptr && last_info->get_type() == previousType) {
+      last_info->set_type(newType);
+      last_info->set_level(level);
+      retval = true;
+    }
+  }
+  return true;
+}
+
 static void gb_markdown_blockcode(hoedown_buffer *ob, const hoedown_buffer *text, const hoedown_buffer *lang,
                                   const hoedown_renderer_data *data) {
   auto collector = get_collector(data);
-  collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_FIXED_WIDTH, text));
+  collector->push_back(greenbar::new_leaf(greenbar::MD_FIXED_WIDTH, text));
 }
 
 static void gb_markdown_header(hoedown_buffer *ob, const hoedown_buffer *content, int level,
                                const hoedown_renderer_data *data) {
-  auto collector = get_collector(data);
   if (content->size == 0) {
-    if (!collector->empty()) {
-      auto last_info = collector->back();
-      if (last_info->type == greenbar::MD_TEXT) {
-        last_info->type = greenbar::MD_HEADER;
-        last_info->level = level;
-      }
-    }
+    set_previous(data, greenbar::MD_TEXT, greenbar::MD_HEADER, level);
   } else {
-    collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_HEADER, content, level));
+    auto collector = get_collector(data);
+    collector->push_back(greenbar::new_leaf(greenbar::MD_HEADER, content, level));
   }
 }
 
 static void gb_markdown_paragraph(hoedown_buffer *ob, const hoedown_buffer *content, const hoedown_renderer_data *data) {
   auto collector = get_collector(data);
-  collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_EOL));
+  collector->push_back(new greenbar::MarkdownLeafInfo(greenbar::MD_EOL));
   switch(content->size) {
     // If content == "" return
   case 0:
@@ -125,57 +152,46 @@ static void gb_markdown_paragraph(hoedown_buffer *ob, const hoedown_buffer *cont
     }
     // Add text and EOL node
   default:
-    collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_TEXT, content));
-    collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_EOL));
+    collector->push_back(greenbar::new_leaf(greenbar::MD_TEXT, content));
+    collector->push_back(new greenbar::MarkdownLeafInfo(greenbar::MD_EOL));
   }
 }
 
 static int gb_markdown_autolink(hoedown_buffer *ob, const hoedown_buffer *link, hoedown_autolink_type type, const hoedown_renderer_data *data) {
   auto collector = get_collector(data);
-  collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_TEXT, link));
+  collector->push_back(greenbar::new_leaf(greenbar::MD_TEXT, link));
   return 1;
 }
 
 static int gb_markdown_codespan(hoedown_buffer *ob, const hoedown_buffer *text, const hoedown_renderer_data *data) {
   auto collector = get_collector(data);
-  collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_FIXED_WIDTH, text));
+  collector->push_back(greenbar::new_leaf(greenbar::MD_FIXED_WIDTH, text));
   return 1;
 }
 
 static int gb_markdown_emphasis(hoedown_buffer *ob, const hoedown_buffer *content, const hoedown_renderer_data *data) {
-  auto collector = get_collector(data);
   if (content->size == 0) {
-    if (!collector->empty()) {
-      auto last_info = collector->back();
-      if (last_info->type == greenbar::MD_TEXT) {
-        last_info->type = greenbar::MD_ITALICS;
-      }
-    }
+    set_previous(data, greenbar::MD_TEXT, greenbar::MD_ITALICS);
   } else {
-    collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_ITALICS, content));
+    auto collector = get_collector(data);
+    collector->push_back(greenbar::new_leaf(greenbar::MD_ITALICS, content));
   }
   return 1;
 }
 
 static int gb_markdown_double_emphasis(hoedown_buffer *ob, const hoedown_buffer *content, const hoedown_renderer_data *data) {
-  auto collector = get_collector(data);
   if (content->size == 0) {
-    if (!collector->empty()) {
-      auto last_info = collector->back();
-      if (last_info->type == greenbar::MD_TEXT) {
-        last_info->type = greenbar::MD_BOLD;
-      }
-    }
+    set_previous(data, greenbar::MD_TEXT, greenbar::MD_BOLD);
   } else {
-    collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_BOLD, content));
+    auto collector = get_collector(data);
+    collector->push_back(greenbar::new_leaf(greenbar::MD_BOLD, content));
   }
   return 1;
 }
 
 static int gb_markdown_linebreak(hoedown_buffer *ob, const hoedown_renderer_data *data) {
   auto collector = get_collector(data);
-  auto info = new greenbar::MarkdownInfo(greenbar::MD_EOL);
-  collector->push_back(info);
+  collector->push_back(new greenbar::MarkdownLeafInfo(greenbar::MD_EOL));
   return 1;
 }
 
@@ -183,14 +199,14 @@ static int gb_markdown_link(hoedown_buffer *ob, const hoedown_buffer *content, c
                             const hoedown_renderer_data *data) {
   auto collector = get_collector(data);
   if (collector->empty()) {
-    collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_LINK, title, link));
+    collector->push_back(greenbar::new_leaf(greenbar::MD_LINK, title, link));
   } else {
-    auto last_info = collector->back();
-    if (last_info->type == greenbar::MD_TEXT) {
-      last_info->type = greenbar::MD_LINK;
-      last_info->url = std::string((char *)link->data, link->size);
+    auto last_info = greenbar::as_leaf(collector->back());
+    if (last_info != nullptr && last_info->get_type() == greenbar::MD_TEXT) {
+      last_info->set_type(greenbar::MD_LINK);
+      last_info->set_url(std::string((char*)link->data, link->size));
     } else {
-      collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_LINK, title, link));
+      collector->push_back(greenbar::new_leaf(greenbar::MD_LINK, title, link));
     }
   }
   return 1;
@@ -203,13 +219,60 @@ static void gb_markdown_normal_text(hoedown_buffer *ob, const hoedown_buffer *te
     break;
   case 1:
     if (memcmp(text->data, "\n", 1) == 0) {
-      collector->push_back(new greenbar::MarkdownInfo(greenbar::MD_EOL));
+      collector->push_back(new greenbar::MarkdownLeafInfo(greenbar::MD_EOL));
       break;
     }
   default:
-    auto info = new greenbar::MarkdownInfo(greenbar::MD_TEXT, text);
-    collector->push_back(info);
+    collector->push_back(greenbar::new_leaf(greenbar::MD_TEXT, text));
     break;
   }
 }
 
+static void gb_markdown_list(hoedown_buffer *ob, const hoedown_buffer *content,
+                             hoedown_list_flags flags, const hoedown_renderer_data *data) {
+  auto collector = get_collector(data);
+  if (collector->empty()) {
+    return;
+  }
+  auto list_type = greenbar::MD_UNORDERED_LIST;
+  if (flags & HOEDOWN_LIST_ORDERED) {
+    list_type = greenbar::MD_ORDERED_LIST;
+  }
+  auto item = new greenbar::MarkdownParentInfo(list_type);
+  auto child = collector->back();
+  while (child->get_type() == greenbar::MD_LIST_ITEM) {
+    collector->pop_back();
+    item->add_child(child);
+    if (collector->empty()) {
+      break;
+    }
+    child = collector->back();
+  }
+  collector->push_back(item);
+}
+
+static void gb_markdown_listitem(hoedown_buffer *ob, const hoedown_buffer *content, hoedown_list_flags flags, const hoedown_renderer_data *data) {
+  auto collector = get_collector(data);
+  if (collector->empty()) {
+    return;
+  }
+  auto item = new greenbar::MarkdownParentInfo(greenbar::MD_LIST_ITEM);
+  auto child = collector->back();
+  if (child->get_type() == greenbar::MD_EOL) {
+    collector->pop_back();
+    item->add_child(child);
+    while (true) {
+      if(collector->empty()) {
+        break;
+      }
+      child = collector->back();
+      if (child->get_type() == greenbar::MD_ORDERED_LIST || child->get_type() == greenbar::MD_UNORDERED_LIST ||
+          child->get_type() == greenbar::MD_LIST_ITEM) {
+        break;
+      }
+      collector->pop_back();
+      item->add_child(child);
+    }
+  }
+  collector->push_back(item);
+}

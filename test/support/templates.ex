@@ -94,4 +94,47 @@ The following users can help you right here in chat:
 """
     end
 
+  def simple_list do
+    """
+* One
+* Two
+* Three
+"""
+  end
+
+  def generated_ordered_list do
+    """
+~each var=$users as=user~
+1. ~$user.name~
+~end~
+"""
+  end
+
+  def generated_unordered_list do
+    """
+~each var=$users as=user~
+* ~$user.name~
+~end~
+"""
+  end
+
+  def dynamic_list do
+    """
+~each var=$users as=user~
+~$li~ ~$user.name~
+~end~
+"""
+  end
+
+  def nested_lists do
+    """
+~each var=$groups as=group~
+* ~$group.name~
+~each var=$group.users as=user~
+  1. ~$user.name~
+~end~
+~end~
+    """
+  end
+
 end
