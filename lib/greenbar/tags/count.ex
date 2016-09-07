@@ -30,7 +30,7 @@ defmodule Greenbar.Tags.Count do
 
   def name, do: "count"
 
-  def render(attrs, scope) do
+  def render(_id, attrs, scope) do
     case get_attr(attrs, "var") do
       value when is_list(value) ->
         {:halt, "#{length(value)}", scope}

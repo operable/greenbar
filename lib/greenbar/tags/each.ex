@@ -39,23 +39,24 @@ defmodule Greenbar.Tags.Each do
 
   def name, do: "each"
 
-  def render(attrs, scope) do
-    case get_remaining(attrs, scope) do
+  def render(id, attrs, scope) do
+    key = make_tag_key(id, @remaining_key)
+    case get_remaining(scope, key, attrs) do
       nil ->
         {:halt, scope}
       [] ->
-        {:halt, scope}
+        {:halt, Scoped.erase(scope, key)}
       [h|t] ->
         var_name = get_attr(attrs, "as", "item")
         child_scope = new_scope(scope)
         {:ok, child_scope} = Scoped.set(child_scope, var_name, h)
-        {:ok, scope} = set_remaining(scope, t)
+        {:ok, scope} = set_remaining(scope, key, t)
         {:again, nil, scope, child_scope}
     end
   end
 
-  defp get_remaining(attrs, scope) do
-    case Scoped.lookup(scope, @remaining_key) do
+  defp get_remaining(scope, key, attrs) do
+    case Scoped.lookup(scope, key) do
       {:not_found, _} ->
         case get_attr(attrs, "var") do
           {:not_found, _} ->
@@ -68,10 +69,10 @@ defmodule Greenbar.Tags.Each do
     end
   end
 
-  defp set_remaining(scope, remaining) do
-    case Scoped.update(scope, @remaining_key, remaining) do
+  defp set_remaining(scope, key, remaining) do
+    case Scoped.update(scope, key, remaining) do
       {:not_found, _} ->
-        Scoped.set(scope, @remaining_key, remaining)
+        Scoped.set(scope, key, remaining)
       {:ok, scope} ->
         {:ok, scope}
     end

@@ -76,14 +76,19 @@ defmodule Greenbar.Tag do
   @type error_response :: {:error, term}
 
   @callback name() :: String.t
-  @callback render(attrs :: tag_attrs, scope :: Scoped.t) :: continue_response | done_response | error_response
+  @callback render(id :: pos_integer, attrs :: tag_attrs, scope :: Scoped.t) :: continue_response | done_response | error_response
 
   defmacro __using__(_) do
     quote do
       @behaviour Greenbar.Tag
 
-      import unquote(__MODULE__), only: [get_attr: 2, get_attr: 3, new_scope: 1]
+      import unquote(__MODULE__), only: [get_attr: 2, get_attr: 3,
+                                         new_scope: 1, make_tag_key: 2]
     end
+  end
+
+  def make_tag_key(id, key) do
+    "__tag_#{id}_#{key}"
   end
 
   def get_attr(attrs, name, default \\ nil) do
@@ -105,8 +110,8 @@ defmodule Greenbar.Tag do
     end
   end
 
-  def render!(tag_mod, attrs, scope, buffer) when is_map(scope) and is_list(buffer) do
-    case tag_mod.render(attrs, scope) do
+  def render!(tag_id, tag_mod, attrs, scope, buffer) when is_map(scope) and is_list(buffer) do
+    case tag_mod.render(tag_id, attrs, scope) do
       {action, scope} when action in [:again, :halt, :once] ->
         {scope, buffer}
       {action, output, scope} when action in [:again, :halt, :once] ->
@@ -116,15 +121,16 @@ defmodule Greenbar.Tag do
     end
   end
 
-  def render!(tag_mod, attrs, body_fn, scope, buffer) when is_map(scope) and is_list(buffer) do
-    result = tag_mod.render(attrs, scope)
+  def render!(tag_id, tag_mod, attrs, body_fn, scope, buffer) when is_map(scope) and is_list(buffer) do
+    result = tag_mod.render(tag_id, attrs, scope)
     case  result do
       {:again, scope, body_scope} ->
-        render!(tag_mod, attrs, body_fn, scope, body_fn.(body_scope, buffer))
+        buffer = render_body!(body_fn, body_scope, buffer)
+        render!(tag_id, tag_mod, attrs, body_fn, scope, buffer)
       {:again, output, scope, body_scope} ->
         buffer = Runtime.add_tag_output!(output, buffer, tag_mod)
         buffer = render_body!(body_fn, body_scope, buffer)
-        render!(tag_mod, attrs, body_fn, scope, buffer)
+        render!(tag_id, tag_mod, attrs, body_fn, scope, buffer)
       {:once, scope, body_scope} ->
         buffer = render_body!(body_fn, body_scope, buffer)
         {scope, buffer}

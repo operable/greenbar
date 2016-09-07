@@ -34,22 +34,25 @@ defmodule Greenbar.Generator do
     end
   end
   def emit({:tag, name, nil, nil}) do
-    quote bind_quoted: [name: name] do
+    tag_id = next_tag_id()
+    quote bind_quoted: [name: name, tag_id: tag_id] do
       {scope, buffer} = (fn(scope, buffer) ->
         tag_mod = Greenbar.Runtime.get_tag!(scope, name)
-        Greenbar.Tag.render!(tag_mod, nil, scope, buffer) end).(scope, buffer)
+        Greenbar.Tag.render!(tag_id, tag_mod, nil, scope, buffer) end).(scope, buffer)
     end
   end
   def emit({:tag, name, attrs, nil}) do
+    tag_id = next_tag_id()
     tag_attr_exprs = build_attr_exprs(attrs, nil)
-    quote bind_quoted: [name: name, tag_attr_exprs: tag_attr_exprs] do
+    quote bind_quoted: [name: name, tag_id: tag_id, tag_attr_exprs: tag_attr_exprs] do
       {scope, buffer} = (fn(scope, buffer) ->
         attrs = tag_attr_exprs
         tag_mod = Greenbar.Runtime.get_tag!(scope, name)
-        Greenbar.Tag.render!(tag_mod, attrs, scope, buffer) end).(scope, buffer)
+        Greenbar.Tag.render!(tag_id, tag_mod, attrs, scope, buffer) end).(scope, buffer)
     end
   end
   def emit({:tag, name, attrs, body}) do
+    tag_id = next_tag_id()
     tag_attr_exprs = build_attr_exprs(attrs, nil)
     quoted_body_fn = generate_tag_body(body)
     quote do
@@ -57,7 +60,7 @@ defmodule Greenbar.Generator do
         body_fn = unquote(quoted_body_fn)
         attrs = unquote(tag_attr_exprs)
         tag_mod = Greenbar.Runtime.get_tag!(scope, unquote(name))
-        Greenbar.Tag.render!(tag_mod, attrs, body_fn, scope, buffer) end).(scope, buffer)
+        Greenbar.Tag.render!(unquote(tag_id), tag_mod, attrs, body_fn, scope, buffer) end).(scope, buffer)
     end
   end
 
@@ -176,6 +179,12 @@ defmodule Greenbar.Generator do
         unquote_splicing(quoted_body)
       end
     end
+  end
+
+  defp next_tag_id() do
+    id = Process.get(:greenbar_tag_id, 1)
+    Process.put(:greebar_tag_id, id + 1)
+    id
   end
 
 end

@@ -137,4 +137,21 @@ The following users can help you right here in chat:
     """
   end
 
+  def bundle_details do
+    """
+ID: ~$results[0].id~
+Name: ~$results[0].name~
+
+Versions: ~each var=$results[0].versions~
+~$item.version~
+~end~
+
+# TODO: Think I need some 'if' tags here, too
+Enabled Version: ~$results[0].enabled_version.version~
+Relay Groups: ~each var=$results[0].relay_groups~
+~$item.name~
+~end~
+"""
+  end
+
 end

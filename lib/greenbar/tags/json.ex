@@ -29,7 +29,7 @@ defmodule Greenbar.Tags.Json do
 
   def name, do: "json"
 
-  def render(attrs, scope) do
+  def render(_id, attrs, scope) do
     case get_attr(attrs, "var") do
       nil ->
         {:error, "var attribute not set"}

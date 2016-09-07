@@ -122,4 +122,25 @@ defmodule Greenbar.EvalTest do
                                                  %{name: :newline}], name: :list_item}],
                          name: :ordered_list}]
   end
+
+  test "multiple same-scope each loops work", context do
+    result = eval_template(context.engine, "bundle_details", Templates.bundle_details, %{"results" => [
+                                                                                         %{"id" => "aaaa-bbbb-cccc-dddd-eeee-ffff",
+                                                                                           "name" => "my_bundle",
+                                                                                           "versions" => [%{"version" => "0.0.1"},
+                                                                                                          %{"version" => "0.0.2"},
+                                                                                                          %{"version" => "0.0.3"}],
+                                                                                           "enabled_version" => %{"version" => "0.0.3"},
+                                                                                           "relay_groups" => [%{"name" => "preprod"},
+                                                                                                              %{"name" => "prod"}]}]})
+    assert result === [%{name: :text, text: "ID: aaaa-bbbb-cccc-dddd-eeee-ffff"}, %{name: :newline},
+                       %{name: :text, text: "Name: my_bundle"}, %{name: :newline},
+                       %{name: :text, text: "Versions: 0.0.1"}, %{name: :newline},
+                       %{name: :text, text: "0.0.2"}, %{name: :newline},
+                       %{name: :text, text: "0.0.3"}, %{name: :newline},
+                       %{name: :text, text: "Enabled Version: 0.0.3"}, %{name: :newline},
+                       %{name: :text, text: "Relay Groups: preprod"}, %{name: :newline},
+                       %{name: :text, text: "prod"}]
+  end
+
 end
