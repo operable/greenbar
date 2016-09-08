@@ -93,8 +93,8 @@ defmodule Greenbar.Generator do
   defp build_attr_exprs([{:assign_tag_attr, attr_name, {:gte, {:var, name, ops},
                                                         {type, _, value}}}|t], expr) when type in [:integer, :float] do
     expr = Macro.pipe(tag_attr_pipe_expr(expr), quote do
-                       var_value = Greenbar.Runtime.var_to_value(scope, unquote(name), unquote(ops))
-                       Map.put(unquote(attr_name), (Kernel.>(var_value, unquote(value)) or Kernel.==(var_value, unquote(value))))
+                       Map.put(unquote(attr_name), (Kernel.>=(Greenbar.Runtime.var_to_value(scope, unquote(name), unquote(ops)),
+                             unquote(value))))
     end, 0)
     build_attr_exprs(t, expr)
   end
@@ -113,8 +113,9 @@ defmodule Greenbar.Generator do
   defp build_attr_exprs([{:assign_tag_attr, attr_name, {:lte, {:var, name, ops},
                                                         {type, _, value}}}|t], expr) when type in [:integer, :float] do
     expr = Macro.pipe(tag_attr_pipe_expr(expr), quote do
-                       var_value = Greenbar.Runtime.var_to_value(scope, unquote(name), unquote(ops))
-                       Map.put(unquote(attr_name), (Kernel.<(var_value, unquote(value)) or Kernel.==(var_value, unquote(value))))
+                       Map.put(unquote(attr_name),
+                       (Kernel.<(Greenbar.Runtime.var_to_value(scope, unquote(name), unquote(ops)), unquote(value)) or
+                         Kernel.==(Greenbar.Runtime.var_to_value(scope, unquote(name), unquote(ops)), unquote(value))))
     end, 0)
     build_attr_exprs(t, expr)
   end
@@ -167,6 +168,15 @@ defmodule Greenbar.Generator do
     build_attr_exprs(t, expr)
   end
 
+  # not bound
+  defp build_attr_exprs([{:assign_tag_attr, attr_name, {:not_bound, {:var, name, ops}}}|t], expr) do
+    expr = Macro.pipe(tag_attr_pipe_expr(expr), quote do
+                       Map.put(unquote(attr_name),
+                         Greenbar.Runtime.not_bound?(Greenbar.Runtime.var_to_value(scope, unquote(name), unquote(ops))))
+    end, 0)
+    build_attr_exprs(t, expr)
+  end
+
   defp tag_attr_pipe_expr(nil) do
     quote do %{} end
   end
@@ -182,9 +192,7 @@ defmodule Greenbar.Generator do
   end
 
   defp next_tag_id() do
-    id = Process.get(:greenbar_tag_id, 1)
-    Process.put(:greebar_tag_id, id + 1)
-    id
+    :erlang.abs(:erlang.monotonic_time())
   end
 
 end

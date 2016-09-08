@@ -92,7 +92,18 @@ The following users can help you right here in chat:
 ~end~
 ~end~
 """
-    end
+  end
+
+  def bound_check do
+    """
+~if cond=$user_creators not_bound?~
+No user creators available.
+~end~
+~if cond=$user_creators bound?~
+~count var=$user_creators~ user creator(s) available.
+~end~
+"""
+  end
 
   def simple_list do
     """
@@ -150,6 +161,20 @@ Versions: ~each var=$results[0].versions~
 Enabled Version: ~$results[0].enabled_version.version~
 Relay Groups: ~each var=$results[0].relay_groups~
 ~$item.name~
+~end~
+"""
+  end
+
+  def length_test do
+    """
+~if cond=length($pets.puppies) > 1~
+Lots of puppies!
+~end~
+~if cond=length($pets.puppies) == 1~
+One puppy
+~end~
+~if cond=length($pets.puppies) == 0~
+No puppies :(
 ~end~
 """
   end

@@ -40,14 +40,19 @@ defmodule Greenbar.Runtime do
   def bound?(nil), do: false
   def bound?(_), do: true
 
+  def not_bound?(v), do: not(bound?(v))
+
   def eval_ops!(ops, value, var_name) do
     Enum.reduce(ops, value, &(eval_op!(var_name, &1, &2)))
   end
 
-  def eval_op!(var_name, {:key, key}, value) when is_map(value) do
+  def eval_op!(_var_name, {:funcall, name}, value) do
+    funcall(name, value)
+  end
+  def eval_op!(_var_name, {:key, key}, value) when is_map(value) do
     case Map.get(value, key) do
       nil ->
-        raise EvaluationError, message: "Key #{key} not found while evaluating reference to variable '#{var_name}'"
+        nil
       value ->
         value
     end
@@ -98,6 +103,15 @@ defmodule Greenbar.Runtime do
   end
   def add_tag_output!(output, _, tag_mod) do
     raise Greenbar.EvaluationError, message: "Tag '#{tag_mod.name()}' returned invalid output: #{inspect output, pretty: true}"
+  end
+
+  def funcall("length", nil), do: 0
+  def funcall("length", value) when is_list(value) or is_map(value) do
+    Enum.count(value)
+  end
+  def funcall("length", _), do: 0
+  def funcall(name, _) do
+    raise Greenbar.EvaluationError, message: "Unknown built-in function '#{name}'"
   end
 
 end

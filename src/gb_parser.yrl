@@ -2,11 +2,11 @@ Terminals
 
 text integer float string var
 
-dot lbracket rbracket
+dot lbracket rbracket lparen rparen
 
 expr_name expr_end eol
 
-assign empty not_empty gt gte lt lte equal not_equal bound.
+assign empty not_empty gt gte lt lte equal not_equal bound not_bound.
 
 Nonterminals
 
@@ -112,11 +112,17 @@ var_expr ->
   var_value not_empty : {not_empty, '$1'}.
 var_expr ->
   var_value bound : {bound, '$1'}.
+var_expr ->
+  var_value not_bound : {not_bound, '$1'}.
 
 var_value ->
   var : make_var(value_from('$1')).
 var_value ->
   var var_ops : make_var(value_from('$1'), '$2').
+var_value ->
+  expr_name lparen var rparen : make_var(value_from('$3'), [make_funcall('$1')]).
+var_value ->
+  expr_name lparen var var_ops rparen : make_var(value_from('$3'), combine('$4', make_funcall('$1'))).
 
 var_ops ->
   dot expr_name : [{key, value_from('$2')}].
@@ -166,13 +172,14 @@ make_tag(Name, Attrs, Body) ->
 make_var(Name) -> {var, Name, nil}.
 make_var(Name, Ops) -> {var, Name, Ops}.
 
+make_funcall({_, _, Name}) ->
+  {funcall, Name}.
+
 ensure_list(Value) when is_list(Value) -> Value;
 ensure_list(Value) -> [Value].
 
 drop_leading_eol({text, <<"\n">>}) -> [];
 drop_leading_eol([{text, <<"\n">>}|T]) -> T;
-drop_leading_eol([{text, <<$\n, Text/binary>>}|T]) ->
-  [{text, <<$\n, Text/binary>>}|T];
 drop_leading_eol(V) ->
   V.
 

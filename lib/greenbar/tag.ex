@@ -112,9 +112,13 @@ defmodule Greenbar.Tag do
 
   def render!(tag_id, tag_mod, attrs, scope, buffer) when is_map(scope) and is_list(buffer) do
     case tag_mod.render(tag_id, attrs, scope) do
-      {action, scope} when action in [:again, :halt, :once] ->
+      {action, scope, _body_scope} when action in [:again, :once] ->
         {scope, buffer}
-      {action, output, scope} when action in [:again, :halt, :once] ->
+      {action, output, scope, _body_scope} when action in [:again, :once] ->
+        {scope, Runtime.add_tag_output!(output, buffer, tag_mod)}
+      {:halt, scope} ->
+        {scope, buffer}
+      {:halt, output, scope} ->
         {scope, Runtime.add_tag_output!(output, buffer, tag_mod)}
       {:error, reason} ->
         raise_eval_error(reason)

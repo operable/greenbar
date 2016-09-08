@@ -13,11 +13,14 @@ LESS_THAN               = <
 LESS_THAN_EQ            = <\=
 EQ                      = \=\=
 NEQ                     = !\=
+LENGTH                  = length
 EMPTY                   = empty\?
 NOT_EMPTY               = not_empty\?
 BOUND                   = bound\?
+NOT_BOUND               = not_bound\?
 DOT                     = \.
 BRACKET                 = \[|\]
+PAREN                   = \(|\)
 SKIPPED                 = \s
 
 Rules.
@@ -37,9 +40,11 @@ Rules.
 {EMPTY}                 : {token, {empty, TokenLine, <<"empty?">>}}.
 {NOT_EMPTY}             : {token, {not_empty, TokenLine, <<"not_empty?">>}}.
 {BOUND}                 : {token, {bound, TokenLine, <<"bound?">>}}.
+{NOT_BOUND}             : {token, {not_bound, TokenLine, <<"not_bound?">>}}.
 {ASSIGN}                : {token, {assign, TokenLine, <<"=">>}}.
 {DOT}                   : {token, {dot, TokenLine, <<".">>}}.
 {BRACKET}               : {token, which_bracket(TokenLine, TokenChars)}.
+{PAREN}                 : {token, which_paren(TokenLine, TokenChars)}.
 {SKIPPED}               : skip_token.
 
 Erlang code.
@@ -63,3 +68,8 @@ which_bracket(TokenLine, [$[]) ->
   {lbracket, TokenLine, <<"[">>};
 which_bracket(TokenLine, [$]]) ->
   {rbracket, TokenLine, <<"]">>}.
+
+which_paren(TokenLine, [$(]) ->
+  {lparen, TokenLine, <<"(">>};
+which_paren(TokenLine, [$)]) ->
+  {rparen, TokenLine, <<")">>}.
