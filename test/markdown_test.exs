@@ -27,9 +27,13 @@ defmodule Greenbar.MarkdownTest do
   end
 
   test "multi line code blocks are parsed correctly" do
-    {:ok, output} = Markdown.analyze("```This is\na test```")
-    assert output === [%{name: :fixed_width, text: "This is\na test"},
-                       %{name: :newline}]
+    {:ok, output} = Markdown.analyze("""
+```
+This is
+a test
+```
+""")
+    assert output === [%{name: :fixed_width, text: "This is\na test\n"}]
   end
 
   test "headers are parsed correctly" do
