@@ -50,7 +50,6 @@ defmodule Greenbar.Tags.JoinTest do
     assert [%{name: :text, text: "highlander"}] == result
   end
 
-  @tag :skip # doesn't work just yet
   test "nested joins", context do
     result = eval_template(context.engine,
                            "nested",
@@ -59,6 +58,6 @@ defmodule Greenbar.Tags.JoinTest do
                                          ["four", "five", "six"],
                                          ["seven", "eight", "nine"]]})
 
-    assert [%{name: :text, text: "one, two, threeooofour, five, sixoooseven, eight, nineeeee"}] == result
+    assert [%{name: :text, text: "one, two, threeooofour, five, sixoooseven, eight, nine"}] == result
   end
 end

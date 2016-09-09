@@ -3,11 +3,9 @@ defmodule Greenbar.Tags.Join do
   @remaining_key "__remaining__"
   @downstream_key "__downstream__"
 
-  use Greenbar.Tag
+  use Greenbar.Tag, body: true
 
   alias Piper.Common.Scope.Scoped
-
-  def name, do: "join"
 
   require Logger
   def render(id, attrs, scope) do
