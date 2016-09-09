@@ -200,6 +200,8 @@ ensure_list(Value) -> [Value].
 
 drop_leading_eol({text, <<"\n">>}) -> [];
 drop_leading_eol([{text, <<"\n">>}|T]) -> T;
+drop_leading_eol([{text, <<$\n, Text/binary>>}|T]) ->
+  [{text, Text}|T];
 drop_leading_eol(V) ->
   V.
 

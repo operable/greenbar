@@ -140,8 +140,10 @@ No user creators available.
   def nested_lists do
     """
 ~each var=$groups as=group~
+
 * ~$group.name~
 ~each var=$group.users as=user~
+
   1. ~$user.name~
 ~end~
 ~end~
@@ -175,6 +177,16 @@ One puppy
 ~end~
 ~if cond=length($pets.puppies) == 0~
 No puppies :(
+~end~
+"""
+  end
+
+  def table_with_each do
+    """
+| First Name | Last Name | Foo |
+|---|---|---|
+~each var=$users as=user~
+| ~$user.first_name~ | ~$user.last_name~ | Bar |
 ~end~
 """
   end
