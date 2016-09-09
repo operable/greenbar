@@ -112,13 +112,14 @@ defmodule Greenbar.EvalTest do
                                                                                                     "users" => [%{"name" => "Big Bird"}]},
                                                                                                   %{"name" => "accounting",
                                                                                                     "users" => [%{"name" => "The Count"}]}]})
+
     assert result === [%{children: [%{children: [%{name: :text, text: "admins"}, %{name: :newline}],
                                       name: :list_item}], name: :unordered_list},
                        %{children: [%{children: [%{name: :text, text: "Big Bird"}, %{name: :newline}],
                                       name: :list_item}], name: :ordered_list},
                        %{children: [%{children: [%{name: :text, text: "accounting"},
                                                  %{name: :newline}], name: :list_item}], name: :unordered_list},
-                       %{children: [%{children: [%{name: :text, text: "accounting"},
+                       %{children: [%{children: [%{name: :text, text: "The Count"},
                                                  %{name: :newline}], name: :list_item}],
                          name: :ordered_list}]
   end
@@ -141,6 +142,27 @@ defmodule Greenbar.EvalTest do
                        %{name: :text, text: "Enabled Version: 0.0.3"}, %{name: :newline},
                        %{name: :text, text: "Relay Groups: preprod"}, %{name: :newline},
                        %{name: :text, text: "prod"}]
+  end
+
+  test "length check works", context do
+    result = eval_template(context.engine, "length_test", Templates.length_test, %{"pets" => %{"cats" => [1,2]}})
+    assert result === [%{name: :text, text: "No puppies :("}]
+    result = eval_template(context.engine, "length_test", Templates.length_test, %{"pets" => %{"cats" => [1,2],
+                                                                                               "puppies" => []}})
+    assert result === [%{name: :text, text: "No puppies :("}]
+    result = eval_template(context.engine, "length_test", Templates.length_test, %{"pets" => %{"cats" => [1,2],
+                                                                                               "puppies" => [1]}})
+    assert result === [%{name: :text, text: "One puppy"}]
+    result = eval_template(context.engine, "length_test", Templates.length_test, %{"pets" => %{"cats" => [1,2],
+                                                                                               "puppies" => [1,2,3]}})
+    assert result === [%{name: :text, text: "Lots of puppies!"}]
+  end
+
+  test "bound check works", context do
+    result = eval_template(context.engine, "bound_check", Templates.bound_check, %{})
+    assert result === [%{name: :text, text: "No user creators available."}]
+    result = eval_template(context.engine, "bound_check", Templates.bound_check, %{"user_creators" => [1,2]})
+    assert result == [%{name: :text, text: "2 user creator(s) available."}]
   end
 
 end

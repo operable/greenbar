@@ -15,11 +15,17 @@ defmodule Greenbar.Engine do
     {:ok, engine}
   end
 
+  if Mix.env == :test do
+    def parse(%__MODULE__{}=engine, source) do
+      :gb_parser.scan_and_parse(source, engine)
+    end
+  end
+
   def compile!(%__MODULE__{}=engine, name, source, opts \\ []) do
     source = Enum.join([String.trim(source), "\n"])
     hash = :crypto.hash(:sha256, source) |> Base.encode16(case: :lower)
     if should_compile?(engine, name, hash, opts) do
-      case :gb_parser.scan_and_parse(source) do
+      case :gb_parser.scan_and_parse(source, engine) do
         {:ok, parsed} ->
           {_, opts} = Keyword.pop(opts, :force)
           template = Template.compile!(name, parsed, opts)

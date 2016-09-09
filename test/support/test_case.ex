@@ -6,6 +6,7 @@ defmodule Greenbar.Test.Support.TestCase do
 
         alias Greenbar.Test.Support.Assertions
         alias Greenbar.Test.Support.Templates
+        alias Greenbar.Engine
 
         use ExUnit.Case
 

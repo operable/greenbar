@@ -33,11 +33,9 @@ defmodule Greenbar.Tags.Each do
 
   @remaining_key "__remaining__"
 
-  use Greenbar.Tag
+  use Greenbar.Tag, body: true
 
   alias Piper.Common.Scope.Scoped
-
-  def name, do: "each"
 
   def render(id, attrs, scope) do
     key = make_tag_key(id, @remaining_key)

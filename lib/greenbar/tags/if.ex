@@ -33,9 +33,7 @@ defmodule Greenbar.Tags.If do
 
   """
 
-  use Greenbar.Tag
-
-  def name, do: "if"
+  use Greenbar.Tag, body: true
 
   def render(_id, attrs, scope) do
     if get_attr(attrs, "cond", false) do

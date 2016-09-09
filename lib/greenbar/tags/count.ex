@@ -28,7 +28,6 @@ defmodule Greenbar.Tags.Count do
 
   use Greenbar.Tag
 
-  def name, do: "count"
 
   def render(_id, attrs, scope) do
     case get_attr(attrs, "var") do
