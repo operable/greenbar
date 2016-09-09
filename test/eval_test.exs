@@ -112,7 +112,6 @@ defmodule Greenbar.EvalTest do
                                                                                                     "users" => [%{"name" => "Big Bird"}]},
                                                                                                   %{"name" => "accounting",
                                                                                                     "users" => [%{"name" => "The Count"}]}]})
-
     assert result === [%{children: [%{children: [%{name: :text, text: "admins"}, %{name: :newline}],
                                       name: :list_item}], name: :unordered_list},
                        %{children: [%{children: [%{name: :text, text: "Big Bird"}, %{name: :newline}],
@@ -120,8 +119,7 @@ defmodule Greenbar.EvalTest do
                        %{children: [%{children: [%{name: :text, text: "accounting"},
                                                  %{name: :newline}], name: :list_item}], name: :unordered_list},
                        %{children: [%{children: [%{name: :text, text: "The Count"},
-                                                 %{name: :newline}], name: :list_item}],
-                         name: :ordered_list}]
+                                                 %{name: :newline}], name: :list_item}], name: :ordered_list}]
   end
 
   test "multiple same-scope each loops work", context do
@@ -163,6 +161,34 @@ defmodule Greenbar.EvalTest do
     assert result === [%{name: :text, text: "No user creators available."}]
     result = eval_template(context.engine, "bound_check", Templates.bound_check, %{"user_creators" => [1,2]})
     assert result == [%{name: :text, text: "2 user creator(s) available."}]
+  end
+
+  test "building tables with each tag", context do
+    result = eval_template(context.engine, "each_table", Templates.table_with_each, %{"users" => [%{"first_name" => "Darth",
+                                                                                                    "last_name" => "Vader"},
+                                                                                                  %{"first_name" => "C3P0",
+                                                                                                    "last_name" => "Botston"},
+                                                                                                  %{"first_name" => "Jabba",
+                                                                                                    "last_name" => "Huttman"}]})
+    assert result === [%{children: [%{children: [%{children: [%{name: :text, text: "First Name"}],
+                                                   name: :table_cell},
+                                                 %{children: [%{name: :text, text: "Last Name"}], name: :table_cell},
+                                                 %{children: [%{name: :text, text: "Foo"}], name: :table_cell}],
+                                      name: :table_header},
+                                    %{children: [%{children: [%{name: :text, text: "Darth"}],
+                                                   name: :table_cell},
+                                                 %{children: [%{name: :text, text: "Vader"}], name: :table_cell},
+                                                 %{children: [%{name: :text, text: "Bar"}], name: :table_cell}],
+                                      name: :table_row},
+                                    %{children: [%{children: [%{name: :text, text: "C3P0"}], name: :table_cell},
+                                                 %{children: [%{name: :text, text: "Botston"}], name: :table_cell},
+                                                 %{children: [%{name: :text, text: "Bar"}], name: :table_cell}],
+                                      name: :table_row},
+                                    %{children: [%{children: [%{name: :text, text: "Jabba"}],
+                                                   name: :table_cell},
+                                                 %{children: [%{name: :text, text: "Huttman"}], name: :table_cell},
+                                                 %{children: [%{name: :text, text: "Bar"}], name: :table_cell}],
+                                      name: :table_row}], name: :table}]
   end
 
 end

@@ -43,7 +43,7 @@ defmodule Greenbar.ParserTest do
     assert {:var, "item", [key: "name"]} = Enum.at(body, 0)
     {:tag, "each", attrs, body} = Enum.at(body, 2)
     assert [{:assign_tag_attr, "var", {:var, "item", [key: "vms"]}}] == attrs
-    assert [{:text, "\n    "}, {:var, "item", [key: "name"]}, {:text, " ("},
+    assert [{:text, "    "}, {:var, "item", [key: "name"]}, {:text, " ("},
             {:var, "item", [key: "id"]}, {:text, ")\n  "}] == body
   end
 
