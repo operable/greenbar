@@ -26,7 +26,7 @@ SKIPPED                 = \s
 Rules.
 
 {EXPR_END}              : {token, {expr_end, TokenLine, <<"end">>}}.
-{EXPR_NAME}             : {token, {expr_name, TokenLine, ?_ES(TokenChars)}}.
+{EXPR_NAME}             : {token, parse_maybe_tag(TokenLine, ?_ES(TokenChars))}.
 {INTEGER}               : {token, {integer, TokenLine, ?_INT(TokenChars)}}.
 {FLOAT}                 : {token, {float, TokenLine, ?_FLOAT(TokenChars)}}.
 {STRING}                : {token, {string, TokenLine, ?_ES(TokenChars)}}.
@@ -73,3 +73,26 @@ which_paren(TokenLine, [$(]) ->
   {lparen, TokenLine, <<"(">>};
 which_paren(TokenLine, [$)]) ->
   {rparen, TokenLine, <<")">>}.
+
+parse_maybe_tag(TokenLine, TokenChars) ->
+  case is_tag(TokenChars) of
+    false ->
+      {expr_name, TokenLine, TokenChars};
+    {true, false} ->
+      {tag, TokenLine, TokenChars};
+    {true, true} ->
+      {body_tag, TokenLine, TokenChars}
+  end.
+
+is_tag(Name) ->
+  case erlang:get(greenbar_engine) of
+    nil ->
+      false;
+    Engine ->
+      case 'Elixir.Greenbar.Engine':get_tag(Engine, Name) of
+        nil ->
+          false;
+        TagMod ->
+          {true, TagMod:'body?'()}
+      end
+  end.

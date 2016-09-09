@@ -162,7 +162,7 @@ defmodule Greenbar.EvalTest do
     result = eval_template(context.engine, "bound_check", Templates.bound_check, %{})
     assert result === [%{name: :text, text: "No user creators available."}]
     result = eval_template(context.engine, "bound_check", Templates.bound_check, %{"user_creators" => [1,2]})
-    assert result == [%{name: :text, text: "There are 2 user_creator(s) available."}]
+    assert result == [%{name: :text, text: "2 user creator(s) available."}]
   end
 
 end

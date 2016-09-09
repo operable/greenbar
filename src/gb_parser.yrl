@@ -4,7 +4,7 @@ text integer float string var
 
 dot lbracket rbracket lparen rparen
 
-expr_name expr_end eol
+expr_name expr_end tag body_tag eol
 
 assign empty not_empty gt gte lt lte equal not_equal bound not_bound.
 
@@ -22,11 +22,17 @@ template ->
 template_exprs ->
   text : {text, value_from('$1')}.
 template_exprs ->
-  expr_name : make_tag(value_from('$1')).
+  expr_name : unknown_tag('$1').
 template_exprs ->
-  expr_name tag_attrs : make_tag(value_from('$1'), '$2').
+  expr_name tag_attrs : unknown_tag('$1').
 template_exprs ->
-  expr_name tag_attrs template_exprs expr_end : make_tag(value_from('$1'), '$2', '$3').
+  expr_name tag_attrs template_exprs expr_end : unknown_tag('$1').
+template_exprs ->
+  tag : make_tag('$1').
+template_exprs ->
+  tag tag_attrs : make_tag('$1', '$2').
+template_exprs ->
+  body_tag tag_attrs template_exprs expr_end : make_tag('$1', '$2', '$3').
 template_exprs ->
   var_value : '$1'.
 template_exprs ->
@@ -34,11 +40,17 @@ template_exprs ->
 template_exprs ->
   text template_exprs : combine({text, value_from('$1')}, '$2').
 template_exprs ->
-  expr_name template_exprs : combine(make_tag(value_from('$1')), '$2').
+  expr_name template_exprs : unknown_tag('$1').
 template_exprs ->
-  expr_name tag_attrs template_exprs : combine(make_tag(value_from('$1'), '$2'), '$3').
+  expr_name tag_attrs template_exprs : unknown_tag('$1').
 template_exprs ->
-  expr_name tag_attrs template_exprs expr_end template_exprs : combine(make_tag(value_from('$1'), '$2', '$3'), drop_leading_eol('$5')).
+  expr_name tag_attrs template_exprs expr_end template_exprs : unknown_tag('$1').
+template_exprs ->
+  tag template_exprs : combine(make_tag('$1'), '$2').
+template_exprs ->
+  tag tag_attrs template_exprs : combine(make_tag('$1', '$2'), '$3').
+template_exprs ->
+  body_tag tag_attrs template_exprs expr_end template_exprs : combine(make_tag('$1', '$2', '$3'), drop_leading_eol('$5')).
 template_exprs ->
   var_value template_exprs : combine('$1', '$2').
 template_exprs ->
@@ -135,23 +147,31 @@ var_ops ->
 
 Erlang code.
 
--export([scan_and_parse/1]).
+-export([scan_and_parse/2]).
 
 -define(MISSING_TILDE_REGEX, "^~([^~])+$").
 
-scan_and_parse(Text) when is_binary(Text) ->
-  case gb_lexer:scan(Text) of
-    {ok, Nodes, _} ->
-      case ?MODULE:parse(Nodes) of
-        {error, Error} ->
-          pp_error(Error);
-        Parsed ->
-          Parsed
-      end;
-    {error, Error} ->
-      pp_error(Error);
-    {error, Error, _} ->
-      pp_error(Error)
+scan_and_parse(Text, Engine) when is_binary(Text) ->
+  erlang:put(greenbar_engine, Engine),
+  try
+    case gb_lexer:scan(Text) of
+      {ok, Nodes, _} ->
+        case ?MODULE:parse(Nodes) of
+          {error, Error} ->
+            pp_error(Error);
+          Parsed ->
+            Parsed
+        end;
+      {error, Error} ->
+        pp_error(Error);
+      {error, Error, _} ->
+        pp_error(Error)
+    end
+  of
+    Result ->
+      Result
+  after
+    erlang:erase(greenbar_engine)
   end.
 
 combine(A, B) when is_list(A),
@@ -163,11 +183,11 @@ combine(A, B) -> [A, B].
 
 value_from({_, _, Text}) -> Text.
 
-make_tag(Name) -> {tag, Name, nil, nil}.
-make_tag(Name, Attrs) -> {tag, Name, ensure_list(Attrs), nil}.
+make_tag(Name) -> {tag, value_from(Name), nil, nil}.
+make_tag(Name, Attrs) -> {tag, value_from(Name), ensure_list(Attrs), nil}.
 make_tag(Name, Attrs, Body) ->
   Body1 = drop_leading_eol(Body),
-  {tag, Name, ensure_list(Attrs), ensure_list(Body1)}.
+  {tag, value_from(Name), ensure_list(Attrs), ensure_list(Body1)}.
 
 make_var(Name) -> {var, Name, nil}.
 make_var(Name, Ops) -> {var, Name, Ops}.
@@ -208,3 +228,5 @@ pp_error({_, Module, Error}) ->
 
 name_to_string({expr_name, Pos, Value}) -> {string, Pos, Value}.
 
+unknown_tag({_, TokenLine, TokenChars}) ->
+  return_error(TokenLine, ["Unknown tag '", binary_to_list(TokenChars), "'"]).

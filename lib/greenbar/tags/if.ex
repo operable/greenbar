@@ -37,6 +37,8 @@ defmodule Greenbar.Tags.If do
 
   def name, do: "if"
 
+  def body?, do: true
+
   def render(_id, attrs, scope) do
     if get_attr(attrs, "cond", false) do
       {:once, scope, new_scope(scope)}

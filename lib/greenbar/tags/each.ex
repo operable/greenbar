@@ -39,6 +39,8 @@ defmodule Greenbar.Tags.Each do
 
   def name, do: "each"
 
+  def body?, do: true
+
   def render(id, attrs, scope) do
     key = make_tag_key(id, @remaining_key)
     case get_remaining(scope, key, attrs) do

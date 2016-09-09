@@ -76,6 +76,7 @@ defmodule Greenbar.Tag do
   @type error_response :: {:error, term}
 
   @callback name() :: String.t
+  @callback body?() :: boolean
   @callback render(id :: pos_integer, attrs :: tag_attrs, scope :: Scoped.t) :: continue_response | done_response | error_response
 
   defmacro __using__(_) do
@@ -84,6 +85,10 @@ defmodule Greenbar.Tag do
 
       import unquote(__MODULE__), only: [get_attr: 2, get_attr: 3,
                                          new_scope: 1, make_tag_key: 2]
+
+      def body?(), do: false
+
+      defoverridable [body?: 0]
     end
   end
 
@@ -112,10 +117,10 @@ defmodule Greenbar.Tag do
 
   def render!(tag_id, tag_mod, attrs, scope, buffer) when is_map(scope) and is_list(buffer) do
     case tag_mod.render(tag_id, attrs, scope) do
-      {action, scope, _body_scope} when action in [:again, :once] ->
-        {scope, buffer}
-      {action, output, scope, _body_scope} when action in [:again, :once] ->
-        {scope, Runtime.add_tag_output!(output, buffer, tag_mod)}
+      {action, _scope, _body_scope} when action in [:again, :once] ->
+        raise Greenbar.EvaluationError, message: "Tag module '#{tag_mod}' returned a body response with no tag body"
+      {action, _output, _scope, _body_scope} when action in [:again, :once] ->
+        raise Greenbar.EvaluationError, message: "Tag module '#{tag_mod}' returned a body response with no tag body"
       {:halt, scope} ->
         {scope, buffer}
       {:halt, output, scope} ->
