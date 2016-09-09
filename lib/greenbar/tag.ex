@@ -92,18 +92,21 @@ defmodule Greenbar.Tag do
   alias Greenbar.Runtime
 
   @type tag_attrs :: Map.t
-  @type newline_output :: %{name: :newline}
-  @type text_output :: %{name: :text, text: binary()}
-  @type tag_output :: String.t | newline_output | text_output | nil
+  @type directive_output :: map
+  @type tag_output :: String.t | directive_output | nil
 
   @type continue_response :: {:again, tag_output, Scoped.t, Scoped.t} | {:again, [tag_output], Scoped.t, Scoped.t}
   @type continue_once_response :: {:once, tag_output, Scoped.t, Scoped.t} | {:once, [tag_output], Scoped.t, Scoped.t}
   @type done_response :: {:halt, tag_output, Scoped.t} | {:halt, [tag_output], Scoped.t}
   @type error_response :: {:error, term}
 
+  @type render_response :: continue_response | continue_once_response | done_response | error_response
+
   @callback name() :: String.t
   @callback body?() :: boolean
-  @callback render(id :: pos_integer, attrs :: tag_attrs, scope :: Scoped.t) :: continue_response | done_response | error_response
+  @callback render(id :: pos_integer, attrs :: tag_attrs, scope :: Scoped.t) :: render_response
+  @callback post_body(id :: pos_integer, attrs :: tag_attrs, tag_scope :: Scoped.t,
+    body_scope :: Scoped.t, body_buffer :: [tag_output]) :: {:ok, Scoped.t, [tag_output]} | error_response
 
   defmacro __using__(opts) do
     tag_name = tag_name!(opts, __CALLER__)
@@ -117,8 +120,9 @@ defmodule Greenbar.Tag do
 
       def name(), do: unquote(tag_name)
       def body?(), do: unquote(body_flag)
+      def post_body(_id, _attrs, scope, _body_scope, response), do: {:ok, scope, response}
 
-      defoverridable [name: 0, body?: 0]
+      defoverridable [name: 0, body?: 0, post_body: 5]
     end
   end
 
@@ -164,19 +168,17 @@ defmodule Greenbar.Tag do
     result = tag_mod.render(tag_id, attrs, scope)
     case  result do
       {:again, scope, body_scope} ->
-        buffer = render_body!(body_fn, body_scope, buffer)
+        {scope, buffer} = render_body!(tag_id, tag_mod, attrs, scope, body_scope, body_fn, buffer)
         render!(tag_id, tag_mod, attrs, body_fn, scope, buffer)
       {:again, output, scope, body_scope} ->
         buffer = Runtime.add_tag_output!(output, buffer, tag_mod)
-        buffer = render_body!(body_fn, body_scope, buffer)
+        {scope, buffer} = render_body!(tag_id, tag_mod, attrs, scope, body_scope, body_fn, buffer)
         render!(tag_id, tag_mod, attrs, body_fn, scope, buffer)
       {:once, scope, body_scope} ->
-        buffer = render_body!(body_fn, body_scope, buffer)
-        {scope, buffer}
+        render_body!(tag_id, tag_mod, attrs, scope, body_scope, body_fn, buffer)
       {:once, output, scope, body_scope} ->
         buffer = Runtime.add_tag_output!(output, buffer, tag_mod)
-        buffer = render_body!(body_fn, body_scope, buffer)
-        {scope, buffer}
+        render_body!(tag_id, tag_mod, attrs, scope, body_scope, body_fn, buffer)
       {:halt, output, scope} ->
         {scope, Runtime.add_tag_output!(output, buffer, tag_mod)}
       {:halt, scope} ->
@@ -186,12 +188,18 @@ defmodule Greenbar.Tag do
     end
   end
 
-  defp render_body!(body_fn, scope, buffer) do
-    case body_fn.(scope, buffer) do
-      {_, buffer} ->
-        buffer
-      buffer when is_list(buffer) ->
-        buffer
+  defp render_body!(tag_id, tag_mod, tag_attrs, tag_scope, body_scope, body_fn, tag_buffer) do
+    {body_scope, body_buffer} = case body_fn.(body_scope, []) do
+                                  {body_scope, updated} ->
+                                    {body_scope, updated}
+                                  updated when is_list(updated) ->
+                                    {body_scope, updated}
+                                end
+    case tag_mod.post_body(tag_id, tag_attrs, tag_scope, body_scope, body_buffer) do
+      {:ok, tag_scope, updated_body_buffer} ->
+        {tag_scope, Runtime.add_tag_output!(Enum.reverse(updated_body_buffer), tag_buffer, tag_mod)}
+      {:error, reason} ->
+        raise_eval_error(reason)
     end
   end
 
