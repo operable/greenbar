@@ -42,22 +42,31 @@ defmodule Greenbar.Tag do
   The tag's body content -- all template content ocurring between the tag and its matching `end` statement --
   will be evaluated none, one, or multiple times depending on the value the tag returns from its `render/2` function.
 
+  It is mandatory that tags use the `body?/0` callback to indicate when they expect body content. `false` indicates
+  the tag expects no content; `true` indicates it does. The default implementation returns `false`.
+
 
   # Controlling Template Execution
 
   Tags can control template execution by the value returned from `render/2`.
 
+  These return values are always valid:
   * `{:halt, scope}` -- the tag has completed and the template should continue processing.
   * `{:halt, output, scope}` -- the tag has completed and generated output. The output will be written
     to the render buffer before processing the rest of the template.
+  * `{:error, reason}` -- abort template execution and raise `Greenbar.EvaluationError`. `reason`, or a
+    its textual version, will be stored in the error's `message` field.
+
+  These return values are valid when a tag has body content:
   * `{:again, scope, body_scope}` -- execution should return to the tag after evaluating it's body.
     This return value is treated as `{:halt, scope}` when the tag lacks body content.
   * `{:once, scope, body_scope}` -- template execution should proceed after evaluating the tag's body
     exactly once. This return value is treated as `{:halt, scope}` when the tag lacks body content.
-  * `{:again | :once, output, scope, body_scope}` -- identical to the output-less versions above except
+  * `{[:again | :once], output, scope, body_scope}` -- identical to the output-less versions above except
     `output` is written to the render buffer before continuing.
-  * `{:error, reason}` -- abort template execution and raise `Greenbar.EvaluationError`. `reason`, or a
-    its textual version, will be stored in the error's `message` field.
+
+  Returning the wrong response type, ie. returning a body response when a tag has no body, will raise a
+  `Greenbar.EvaluationError` at runtime.
 
   """
 
