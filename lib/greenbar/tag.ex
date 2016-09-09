@@ -42,8 +42,8 @@ defmodule Greenbar.Tag do
   The tag's body content -- all template content ocurring between the tag and its matching `end` statement --
   will be evaluated none, one, or multiple times depending on the value the tag returns from its `render/2` function.
 
-  It is mandatory that tags use the `body?/0` callback to indicate when they expect body content. `false` indicates
-  the tag expects no content; `true` indicates it does. The default implementation returns `false`.
+  It is mandatory that tags use the `:body` option to indicate when they expect body content. `false` indicates
+  the tag expects no content; `true` indicates it does. The default is `false`.
 
 
   # Controlling Template Execution
@@ -68,6 +68,22 @@ defmodule Greenbar.Tag do
   Returning the wrong response type, ie. returning a body response when a tag has no body, will raise a
   `Greenbar.EvaluationError` at runtime.
 
+  # Hello, World tag example
+
+  ```
+  defmodule MyApp.Tags.HelloWorld do
+
+    use Greenbar.Tag, name: "hello_world",
+                      body: false
+
+    # Emits "hello, world" into template output buffer
+    def render(_id, _attrs, scope) do
+      {:halt, "hello, world", scope}
+    end
+
+  end
+  ```
+
   """
 
   alias Piper.Common.Scope
@@ -88,16 +104,20 @@ defmodule Greenbar.Tag do
   @callback body?() :: boolean
   @callback render(id :: pos_integer, attrs :: tag_attrs, scope :: Scoped.t) :: continue_response | done_response | error_response
 
-  defmacro __using__(_) do
+  defmacro __using__(opts) do
+    tag_name = tag_name!(opts, __CALLER__)
+    body_flag = body_flag!(opts, __CALLER__)
+
     quote do
-      @behaviour Greenbar.Tag
+      @behaviour unquote(__MODULE__)
 
       import unquote(__MODULE__), only: [get_attr: 2, get_attr: 3,
                                          new_scope: 1, make_tag_key: 2]
 
-      def body?(), do: false
+      def name(), do: unquote(tag_name)
+      def body?(), do: unquote(body_flag)
 
-      defoverridable [body?: 0]
+      defoverridable [name: 0, body?: 0]
     end
   end
 
@@ -171,6 +191,33 @@ defmodule Greenbar.Tag do
         buffer
       buffer when is_list(buffer) ->
         buffer
+    end
+  end
+
+  defp tag_name!(opts, caller) do
+    case Keyword.get(opts, :name) do
+      nil ->
+        caller.module
+        |> Atom.to_string
+        |> String.split(".")
+        |> List.last
+        |> String.downcase
+      name when is_binary(name) ->
+        name
+      _ ->
+        raise CompileError, description: "Greenbar tag :name option must be a string",
+          file: caller.file, line: caller.line
+    end
+
+  end
+
+  defp body_flag!(opts, caller) do
+    case Keyword.get(opts, :body, false) do
+      body_flag when is_boolean(body_flag) ->
+        body_flag
+      _ ->
+        raise CompileError, description: "Greenbar tag :body option must be boolean",
+          file: caller.file, line: caller.line
     end
   end
 

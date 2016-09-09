@@ -27,8 +27,6 @@ defmodule Greenbar.Tags.Json do
   """
   use Greenbar.Tag
 
-  def name, do: "json"
-
   def render(_id, attrs, scope) do
     case get_attr(attrs, "var") do
       nil ->
