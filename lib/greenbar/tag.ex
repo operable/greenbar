@@ -73,7 +73,8 @@ defmodule Greenbar.Tag do
   ```
   defmodule MyApp.Tags.HelloWorld do
 
-    use Greenbar.Tag, name: "hello_world",
+    use Greenbar.Tag, name: "hello_world", # This would default to "helloworld"
+                                           # if not overridden here
                       body: false
 
     # Emits "hello, world" into template output buffer
