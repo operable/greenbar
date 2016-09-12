@@ -5,6 +5,7 @@ defmodule Greenbar.EvalTest do
 
   setup_all do
     {:ok, engine} = Engine.new
+    {:ok, engine} = Engine.add_tag(engine, Greenbar.Test.Support.PrefixTag)
     [engine: engine]
   end
 
@@ -70,7 +71,7 @@ defmodule Greenbar.EvalTest do
 
   test "not_empty? check works", context do
     result = eval_template(context.engine, "not_empty_check", Templates.not_empty_check, %{"user_creators" => ["bob", "sue", "frank"]})
-    Assertions.directive_structure(result, [:newline, :text, :newline, :newline, # header
+    Assertions.directive_structure(result, [:newline, :text, :newline, :newline, #header
                                             :text, :newline, # bob
                                             :text, :newline, # sue
                                             :text]) #frank
@@ -191,4 +192,39 @@ defmodule Greenbar.EvalTest do
                                       name: :table_row}], name: :table}]
   end
 
+  test "wrapping body with attachment tag works", context do
+    result = eval_template(context.engine, "attachment_tag", Templates.attachment_tag, %{"bundles" => [%{"name" => "foo",
+                                                                                                         "status" => "enabled"},
+                                                                                                       %{"name" => "bar",
+                                                                                                         "status" => "enabled"},
+                                                                                                       %{"name" => "baz",
+                                                                                                         "status" => "disabled"}],
+                                                                                         "color" => "blue",
+                                                                                         "woot" => 123})
+    assert result === [%{children: [%{children: [%{children: [%{children: [%{name: :text,
+                                                                             text: "Bundle"}], name: :table_cell},
+                                                              %{children: [%{name: :text, text: "Status"}], name: :table_cell}],
+                                                   name: :table_header},
+                                                 %{children: [%{children: [%{name: :text, text: "foo"}],
+                                                                name: :table_cell},
+                                                              %{children: [%{name: :text, text: "enabled"}], name: :table_cell}],
+                                                   name: :table_row},
+                                                 %{children: [%{children: [%{name: :text, text: "bar"}],
+                                                                name: :table_cell},
+                                                              %{children: [%{name: :text, text: "enabled"}], name: :table_cell}],
+                                                   name: :table_row},
+                                                 %{children: [%{children: [%{name: :text, text: "baz"}],
+                                                                name: :table_cell},
+                                                              %{children: [%{name: :text, text: "disabled"}], name: :table_cell}],
+                                                   name: :table_row}], name: :table}],
+                         name: :attachment,
+                         color: "blue",
+                         fields: [%{short: false, title: "custom_field", value: 123}]}]
+  end
+
+  test "wrapping body works", context do
+    result = eval_template(context.engine, "foo1", "~prefix~\nThis is a test\n~end~", %{})
+    assert result === [%{name: :text, text: "This is the prefix tag."},
+                       %{name: :newline}, %{name: :text, text: "This is a test"}]
+  end
 end

@@ -1,9 +1,11 @@
 defmodule Greenbar.Runtime do
 
+    @allowed_directive_atoms Enum.sort([:text, :newline, :bold, :italics, :fixed_width, :header, :link,
+                              :attachment])
+    @allowed_directive_strings Enum.sort(Enum.map(@allowed_directive_atoms, &(Atom.to_string(&1))))
+
   alias Piper.Common.Scope.Scoped
   alias Greenbar.EvaluationError
-
-  @allowed_directives [:text, :newline, :bold, :italics, :fixed_width, :header, :link]
 
   def var_to_value(scope, var_name, ops \\ nil)
   def var_to_value(scope, var_name, nil) do
@@ -95,8 +97,13 @@ defmodule Greenbar.Runtime do
   def add_tag_output!(output, buffer, _tag_mod) when is_binary(output) do
     add_to_buffer(%{name: :text, text: output}, buffer)
   end
-  def add_tag_output!(%{name: name}=output, buffer, _tag_mod) when name in @allowed_directives do
-    add_to_buffer(output, buffer)
+  def add_tag_output!(%{name: name}=output, buffer, tag_mod) do
+    case allowed_directive?(name) do
+      true ->
+        add_to_buffer(output, buffer)
+      false ->
+        raise Greenbar.EvaluationError, message: "Tag '#{tag_mod.name()}' returned an unknown directive: #{inspect name}"
+    end
   end
   def add_tag_output!(outputs, buffer, tag_mod) when is_list(outputs) do
     Enum.reduce(outputs, buffer, fn(output, buffer) -> add_tag_output!(output, buffer, tag_mod) end)
@@ -113,5 +120,9 @@ defmodule Greenbar.Runtime do
   def funcall(name, _) do
     raise Greenbar.EvaluationError, message: "Unknown built-in function '#{name}'"
   end
+
+  defp allowed_directive?(name) when name in @allowed_directive_atoms, do: true
+  defp allowed_directive?(name) when name in @allowed_directive_strings, do: true
+  defp allowed_directive?(_), do: false
 
 end
