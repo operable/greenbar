@@ -198,7 +198,9 @@ defmodule Greenbar.EvalTest do
                                                                                                        %{"name" => "bar",
                                                                                                          "status" => "enabled"},
                                                                                                        %{"name" => "baz",
-                                                                                                         "status" => "disabled"}]})
+                                                                                                         "status" => "disabled"}],
+                                                                                         "color" => "blue",
+                                                                                         "woot" => 123})
     assert result === [%{children: [%{children: [%{children: [%{children: [%{name: :text,
                                                                              text: "Bundle"}], name: :table_cell},
                                                               %{children: [%{name: :text, text: "Status"}], name: :table_cell}],
@@ -214,8 +216,10 @@ defmodule Greenbar.EvalTest do
                                                  %{children: [%{children: [%{name: :text, text: "baz"}],
                                                                 name: :table_cell},
                                                               %{children: [%{name: :text, text: "disabled"}], name: :table_cell}],
-                                                   name: :table_row}], name: :table}], left_border: "red",
-                         name: :attachment}]
+                                                   name: :table_row}], name: :table}],
+                         name: :attachment,
+                         color: "blue",
+                         fields: [%{short: false, title: "custom_field", value: 123}]}]
   end
 
   test "wrapping body works", context do

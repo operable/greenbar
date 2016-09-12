@@ -12,17 +12,39 @@ defmodule Greenbar.Tags.Attachment do
   end
 
   def post_body(_id, attrs, scope, _body_scope, response) do
-    attachment = Enum.reduce(attrs, %{}, &(generate_attributes(&1, &2))) |> Map.put(:name, :attachment)
-    {:ok, scope, Map.put(attachment, :children, response)}
+    {attachment, fields} = Enum.reduce(attrs, {%{}, []}, &(gen_attributes(&1, &2)))
+    updated = attachment
+              |> Map.put(:name, :attachment)
+              |> Map.put(:fields, fields)
+              |> Map.put(:children, response)
+    {:ok, scope, updated}
   end
 
-  defp generate_attributes({key, value}, accum) do
-    case key do
-      "left_border" ->
-        Map.put(accum, :left_border, value)
-      _ ->
-        accum
-    end
+  # Inspired by Slack's attachment attributes
+  # See https://api.slack.com/docs/message-attachments
+  defp gen_attributes({"title", value}, {attachment, fields}) do
+    {Map.put(attachment, :title, value), fields}
+  end
+  defp gen_attributes({"title_url", value}, {attachment, fields}) do
+    {Map.put(attachment, :title_url, value), fields}
+  end
+  defp gen_attributes({"pretext", value}, {attachment, fields}) do
+    {Map.put(attachment, :pretext, value), fields}
+  end
+  defp gen_attributes({"color", value}, {attachment, fields}) do
+    {Map.put(attachment, :color, value), fields}
+  end
+  defp gen_attributes({"image_url", value}, {attachment, fields}) do
+    {Map.put(attachment, :image_url, value), fields}
+  end
+  defp gen_attributes({"author", value}, {attachment, fields}) do
+    {Map.put(attachment, :author, value), fields}
+  end
+  defp gen_attributes({key, value}, {attachment, fields}) do
+    field = %{title: key,
+              value: value,
+              short: false}
+    {attachment, [field|fields]}
   end
 
 end

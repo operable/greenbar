@@ -193,7 +193,7 @@ No puppies :(
 
   def attachment_tag do
     """
-~attachment left_border=red~
+~attachment color=$color custom_field=$woot~
 | Bundle | Status |
 |---|---|
 ~each var=$bundles as=bundle~
