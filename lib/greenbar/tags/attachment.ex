@@ -47,15 +47,15 @@ defmodule Greenbar.Tags.Attachment do
 
   generates the rendering directives
 
-  """
 
+  ```
   [%{name: :attachment,
      title: "VM Use By Region",
      fields: [%{short: false,
                 title: "runtime",
                 value: "Mon Sep 12 13:06:57 EDT 2016"}],
                 children: [%{name: :table, children: [%{name: :table_header,
-                                children: [%{name: :table_cell,
+                                    children: [%{name: :table_cell,
                                              children: [%{name: :text, text: "Region"}]},
                                            %{name: :table_cell,
                                              children: [%{name: :text, text: "Count"}]}]},
@@ -69,7 +69,8 @@ defmodule Greenbar.Tags.Attachment do
                                              children: [%{name: :text, text: "us-west-1"}]},
                                            %{name: :table_cell,
                                              children: [%{name: :text, text: "105"}]}]}]}]}]
-
+  ```
+  """
 
   use Greenbar.Tag, body: true
 
