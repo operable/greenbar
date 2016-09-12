@@ -45,16 +45,17 @@ defmodule Greenbar.Tag do
   It is mandatory that tags use the `:body` option to indicate when they expect body content. `false` indicates
   the tag expects no content; `true` indicates it does. The default is `false`.
 
+  # Controlling Tag Output and Execution
 
-  # Controlling Template Execution
+  `render(id :: pos_integer, attrs :: tag_attrs, scope :: Scoped.t) :: render_response`
 
-  Tags can control template execution by the value returned from `render/2`.
+  Tags can control template execution by the value returned from their `render/2` callback function.
 
   These return values are always valid:
   * `{:halt, scope}` -- the tag has completed and the template should continue processing.
   * `{:halt, output, scope}` -- the tag has completed and generated output. The output will be written
     to the render buffer before processing the rest of the template.
-  * `{:error, reason}` -- abort template execution and raise `Greenbar.EvaluationError`. `reason`, or a
+  * `{:error, reason}` -- abort template execution and raise `Greenbar.EvaluationError`. `reason`, or
     its textual version, will be stored in the error's `message` field.
 
   These return values are valid when a tag has body content:
@@ -68,7 +69,26 @@ defmodule Greenbar.Tag do
   Returning the wrong response type, ie. returning a body response when a tag has no body, will raise a
   `Greenbar.EvaluationError` at runtime.
 
-  # Hello, World tag example
+  # Accessing Tag Body Content
+
+  `post_body(id :: pos_integer, attrs :: tag_attrs, tag_scope :: Scoped.t,
+    body_scope :: Scoped.t, body_buffer :: [tag_output]) :: {:ok, Scoped.t, [tag_output]} | error_response`
+
+  Tags with bodies can gain access to their body content by implementing the `post_body/5` callback. This function
+  is called with the tag's id, attributes, scope, the body scope used to render the body, and the body content itself.
+
+  The following return values are valid for `post_body/5`:
+  * `{:ok, tag_scope, body_content}` -- template execution should proceed using the returned `tag_scope` and `body_content`.
+  * `{:error, reason}` -- abort template execution and raise `Greenbar.EvaluationError`. `reason`, or its textual version,
+    will be stored in the error's `message` field.
+
+  ## Body Content Ordering
+
+  Greenbar accumulates template output in reverse order. Doing so keeps output accumulation efficiencies at O(1) instead of
+  O(n). This reflects the underlying list implementation supplied by the Erlang VM. It's important to keep this in mind as you're
+  working with body content to avoid surprising results.
+
+  ## Hello, World tag example
 
   ```
   defmodule MyApp.Tags.HelloWorld do
@@ -85,6 +105,14 @@ defmodule Greenbar.Tag do
   end
   ```
 
+  ## Learning more
+
+  Greenbar itself is a good source of examples for the tag API. Here's some suggested starting points:
+
+  * Simple tag, no body -- `Greenbar.Tags.Break`
+  * No body, uses tag attributes - `Greenbar.Tags.Count`
+  * Tag attributes, rendering body content with iteration -- `Greenbar.Tags.Each`
+  * Modifying content via `post_body/5` -- `Greenbar.Tags.Attachment`
   """
 
   alias Piper.Common.Scope
@@ -102,8 +130,12 @@ defmodule Greenbar.Tag do
 
   @type render_response :: continue_response | continue_once_response | done_response | error_response
 
+  @doc  "Automatically generated from `use` keyword option `:name`"
   @callback name() :: String.t
+
+  @doc "Automatically generated from `use` keyword option `:body`"
   @callback body?() :: boolean
+
   @callback render(id :: pos_integer, attrs :: tag_attrs, scope :: Scoped.t) :: render_response
   @callback post_body(id :: pos_integer, attrs :: tag_attrs, tag_scope :: Scoped.t,
     body_scope :: Scoped.t, body_buffer :: [tag_output]) :: {:ok, Scoped.t, [tag_output]} | error_response
@@ -116,7 +148,8 @@ defmodule Greenbar.Tag do
       @behaviour unquote(__MODULE__)
 
       import unquote(__MODULE__), only: [get_attr: 2, get_attr: 3,
-                                         new_scope: 1, make_tag_key: 2]
+                                         new_scope: 1, make_tag_key: 2, get: 3,
+                                         get: 4, put: 4]
 
       def name(), do: unquote(tag_name)
       def body?(), do: unquote(body_flag)
@@ -126,17 +159,90 @@ defmodule Greenbar.Tag do
     end
   end
 
+  @doc """
+  Creates a scope key scoped to a single tag instance in a template
+  """
   def make_tag_key(id, key) do
     "__tag_#{id}_#{key}"
   end
 
+  @doc """
+  Fetches a value from a tag's scope. If id == :global then a non-scoped
+  key will be used. Returns the default value if no value is found.
+  """
+  def get(scope, id, key, default \\ nil) when is_integer(id) or id == :global do
+    tag_key = if id == :global do
+      key
+    else
+      make_tag_key(id, key)
+    end
+    case Scoped.lookup(scope, tag_key) do
+      {:not_found, _} ->
+        default
+      {:ok, value} ->
+        value
+    end
+  end
+
+  @doc """
+  Puts a value into a tag's scope. If id == :global then a non-scoped
+  key will be used. Existing values will be overwritten.
+  """
+  def put(scope, id, key, value) when is_integer(id) or id == :global do
+    tag_key = if id == :global do
+      key
+    else
+      make_tag_key(id, key)
+    end
+    {:ok, scope} = case Scoped.lookup(scope, tag_key) do
+                     {:not_found, _} ->
+                       Scoped.set(scope, tag_key, value)
+                     {:ok, _} ->
+                       Scoped.update(scope, tag_key, value)
+                   end
+    scope
+  end
+
+  @doc """
+  Fetches a tag attribute
+  """
   def get_attr(attrs, name, default \\ nil) do
     Map.get(attrs, name, default)
   end
 
+  @doc """
+  Creates a linked tag scope suitable for rendering tag bodies
+  """
   def new_scope(parent) do
     {:ok, new_scope} = Scoped.set_parent(Scope.empty_scope(), parent)
     new_scope
+  end
+
+  @doc """
+  Saves the body content for a given tag instance for future processing
+  """
+  def retain_body(id, scope, body_content) do
+    retained_body_key = make_tag_key(id, "retained_body")
+    {:ok, scope} = case Scoped.lookup(scope, retained_body_key) do
+                     {:not_found, _} ->
+                       Scoped.set(scope, retained_body_key, [body_content])
+                     retained_body_content ->
+                       Scoped.update(scope, retained_body_key, [body_content|retained_body_content])
+                   end
+    {:ok, scope}
+  end
+
+  @doc """
+  Retrieves retained body content, if any exists, for a given tag instance
+  """
+  def retained_body(id, scope) do
+    retained_body_key = make_tag_key(id, "retained_body")
+    case Scoped.lookup(scope, retained_body_key) do
+      {:not_found, _} ->
+        []
+      {:ok, retained_body} ->
+        retained_body
+    end
   end
 
   defmacrop raise_eval_error(reason) do
@@ -196,8 +302,10 @@ defmodule Greenbar.Tag do
                                     {body_scope, updated}
                                 end
     case tag_mod.post_body(tag_id, tag_attrs, tag_scope, body_scope, body_buffer) do
-      {:ok, tag_scope, updated_body_buffer} ->
+      {:ok, tag_scope, updated_body_buffer} when is_list(updated_body_buffer) ->
         {tag_scope, Runtime.add_tag_output!(Enum.reverse(updated_body_buffer), tag_buffer, tag_mod)}
+      {:ok, tag_scope, updated_body_buffer} ->
+        {tag_scope, Runtime.add_tag_output!(updated_body_buffer, tag_buffer, tag_mod)}
       {:error, reason} ->
         raise_eval_error(reason)
     end

@@ -32,6 +32,8 @@ template_exprs ->
 template_exprs ->
   tag tag_attrs : make_tag('$1', '$2').
 template_exprs ->
+  body_tag template_exprs expr_end : make_tag('$1', [], '$2').
+template_exprs ->
   body_tag tag_attrs template_exprs expr_end : make_tag('$1', '$2', '$3').
 template_exprs ->
   var_value : '$1'.
@@ -49,6 +51,8 @@ template_exprs ->
   tag template_exprs : combine(make_tag('$1'), '$2').
 template_exprs ->
   tag tag_attrs template_exprs : combine(make_tag('$1', '$2'), '$3').
+template_exprs ->
+  body_tag template_exprs expr_end template_exprs : combine(make_tag('$1', [], '$2'), drop_leading_eol('$4')).
 template_exprs ->
   body_tag tag_attrs template_exprs expr_end template_exprs : combine(make_tag('$1', '$2', '$3'), drop_leading_eol('$5')).
 template_exprs ->

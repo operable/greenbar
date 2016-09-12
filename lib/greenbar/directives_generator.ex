@@ -8,6 +8,10 @@ defmodule Greenbar.DirectivesGenerator do
     |> Enum.reverse
   end
 
+  defp process_markdown(%{name: :attachment, children: children}=attachment) do
+    updated = Enum.flat_map(children, &process_markdown/1)
+    [Map.put(attachment, :children, updated)]
+  end
   defp process_markdown(%{name: :text, text: text}) do
     {:ok, parsed} = :greenbar_markdown.analyze(text)
     parsed

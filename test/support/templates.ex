@@ -191,4 +191,16 @@ No puppies :(
 """
   end
 
+  def attachment_tag do
+    """
+~attachment left_border=red~
+| Bundle | Status |
+|---|---|
+~each var=$bundles as=bundle~
+|~$bundle.name~|~$bundle.status~|
+~end~
+~end~
+"""
+  end
+
 end
