@@ -24,10 +24,10 @@ defmodule Greenbar.Tags.JoinTest do
   test "simple join with non-default joiner", context do
     result = eval_template(context.engine,
                            "simple_join_with_joiner",
-                           "~join var=$stuff with=ooo ~~$item~~end~",
+                           "~join var=$stuff with=\"-\" ~~$item~~end~",
                            %{"stuff" => ["foo", "bar", "baz"]})
 
-    assert [%{name: :text, text: "fooooobarooobaz"}] == result
+    assert [%{name: :text, text: "foo-bar-baz"}] == result
   end
 
   test "join with a body", context  do
@@ -53,11 +53,11 @@ defmodule Greenbar.Tags.JoinTest do
   test "nested joins", context do
     result = eval_template(context.engine,
                            "nested",
-                           "~join var=$stuff with=ooo~~join var=$item as=i~~$i~~end~~end~",
+                           "~join var=$stuff with=\"-\"~~join var=$item as=i~~$i~~end~~end~",
                            %{"stuff" => [["one", "two", "three"],
                                          ["four", "five", "six"],
                                          ["seven", "eight", "nine"]]})
 
-    assert [%{name: :text, text: "one, two, threeooofour, five, sixoooseven, eight, nine"}] == result
+    assert [%{name: :text, text: "one, two, three-four, five, six-seven, eight, nine"}] == result
   end
 end
