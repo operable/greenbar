@@ -223,8 +223,17 @@ defmodule Greenbar.EvalTest do
   end
 
   test "wrapping body works", context do
-    result = eval_template(context.engine, "foo1", "~prefix~\nThis is a test\n~end~", %{})
+    result = eval_template(context.engine, "foo1", "~prefix~\nThis is a test\nThis is another test\n~end~", %{})
     assert result === [%{name: :text, text: "This is the prefix tag."},
-                       %{name: :newline}, %{name: :text, text: "This is a test"}]
+                       %{name: :newline}, %{name: :text, text: "This is a test"},
+                       %{name: :newline}, %{name: :text, text: "This is another test"}]
   end
+
+  test "attachment tag's body is in the correct order", context do
+    result = eval_template(context.engine, "foo2", "~attachment color=\"red\"~\nThis is a test\n```\nThis is another test\n```\n~end~", %{})
+    assert result === [%{children: [%{name: :text, text: "This is a test"}, %{name: :newline},
+                                    %{name: :fixed_width, text: "\nThis is another test\n"}, %{name: :newline}],
+                         color: "red", fields: [], name: :attachment}]
+  end
+
 end
