@@ -5,7 +5,7 @@ INTEGER                 = [0-9]+
 FLOAT                   = [0-9]+\.[0-9]+
 STRING                  = "(\\\^.|\\.|[^"])*"
 VAR                     = \$[a-zA-Z][a-zA-Z0-9_]*
-EXPR_NAME               = [a-zA-Z][a-zA-Z0-9_]*
+EXPR_NAME               = [a-zA-Z][a-zA-Z0-9_\-]*
 ASSIGN                  = \=
 GREATER_THAN            = >
 GREATER_THAN_EQ         = >\=
@@ -29,7 +29,7 @@ Rules.
 {EXPR_NAME}             : {token, parse_maybe_tag(TokenLine, ?_ES(TokenChars))}.
 {INTEGER}               : {token, {integer, TokenLine, ?_INT(TokenChars)}}.
 {FLOAT}                 : {token, {float, TokenLine, ?_FLOAT(TokenChars)}}.
-{STRING}                : {token, {string, TokenLine, ?_ES(TokenChars)}}.
+{STRING}                : {token, {string, TokenLine, strip_quotes(TokenChars)}}.
 {VAR}                   : [$$|VarName] = TokenChars, {token, {var, TokenLine, ?_ES(VarName)}}.
 {EQ}                    : {token, {equal, TokenLine, <<"==">>}}.
 {NEQ}                   : {token, {not_equal, TokenLine, <<"!=">>}}.
@@ -96,3 +96,6 @@ is_tag(Name) ->
           {true, TagMod:'body?'()}
       end
   end.
+
+strip_quotes(Text) ->
+  re:replace(Text, "(^\"|\"$)", "", [global, {return, binary}]).

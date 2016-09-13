@@ -56,4 +56,11 @@ defmodule Greenbar.ParserTest do
     Greenbar.Engine.compile!(context.engine, "dangling_comment", Templates.dangling_comment)
   end
 
+  test "double quoted strings lose their quotes", context do
+    {:ok, template} = Engine.parse(context.engine, "~attachment title=\"This is a test\"~\n1 2 3\n~end~\n")
+    assert [{:tag, "attachment",
+             [{:assign_tag_attr, "title", {:string, 1, "This is a test"}}],
+             [text: "\n1 2 3\n"]}] === template
+  end
+
 end
