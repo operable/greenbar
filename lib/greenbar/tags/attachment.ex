@@ -80,13 +80,19 @@ defmodule Greenbar.Tags.Attachment do
   end
 
   def post_body(_id, attrs, scope, _body_scope, response) do
-    {attachment, fields} = Enum.reduce(attrs, {%{}, []}, &(gen_attributes(&1, &2)))
-    updated = attachment
-              |> Map.put(:name, :attachment)
-              |> Map.put(:fields, fields)
-              |> Map.put(:children, response)
-    {:ok, scope, updated}
+    attachment = make_attachment(attrs)
+    # Reverse the body to get it in the correct order for the attachment
+    children = Enum.reverse(response)
+    {:ok, scope, Map.put(attachment, :children, children)}
   end
+
+  defp make_attachment(attrs) do
+    {attachment, fields} = Enum.reduce(attrs, {%{}, []}, &(gen_attributes(&1, &2)))
+    attachment
+    |> Map.put(:name, :attachment)
+    |> Map.put(:fields, fields)
+  end
+
 
   # Inspired by Slack's attachment attributes
   # See https://api.slack.com/docs/message-attachments
