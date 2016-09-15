@@ -29,6 +29,17 @@ defmodule Greenbar.Tags.AttachmentTest do
   test "attachment with empty body", context do
     result = eval_template(context.engine,
                            "attachment_no_body",
+                           "~attachment~~end~",
+                           %{})
+
+    assert [%{name: :attachment,
+              fields: [],
+              children: []}] == result
+  end
+
+  test "attachment with empty body (newline before end)", context do
+    result = eval_template(context.engine,
+                           "attachment_no_body_newline",
                            "~attachment~\n~end~",
                            %{})
 
@@ -57,7 +68,6 @@ defmodule Greenbar.Tags.AttachmentTest do
               ]}] == result
   end
 
-  # Note: The assertion in this case is a little bit f
   test "attachment fields", context do
     [attachment|_] = eval_template(context.engine,
                                    "attachment_fields",
