@@ -86,6 +86,9 @@ defmodule Greenbar.Tags.Attachment do
     {:ok, scope, Map.put(attachment, :children, children)}
   end
 
+  defp make_attachment(nil) do
+    make_attachment(%{})
+  end
   defp make_attachment(attrs) do
     {attachment, fields} = Enum.reduce(attrs, {%{}, []}, &(gen_attributes(&1, &2)))
     attachment
