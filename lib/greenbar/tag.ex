@@ -300,6 +300,8 @@ defmodule Greenbar.Tag do
                                     {body_scope, updated}
                                   updated when is_list(updated) ->
                                     {body_scope, updated}
+                                  nil ->
+                                    {body_scope, []}
                                 end
     case tag_mod.post_body(tag_id, tag_attrs, tag_scope, body_scope, body_buffer) do
       {:ok, tag_scope, updated_body_buffer} when is_list(updated_body_buffer) ->

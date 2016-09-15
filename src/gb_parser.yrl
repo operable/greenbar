@@ -10,7 +10,7 @@ assign empty not_empty gt gte lt lte equal not_equal bound not_bound.
 
 Nonterminals
 
-template template_exprs tag_attrs tag_attr var_value var_expr var_ops.
+template template_exprs tag_attrs tag_attr attr_name var_value var_expr var_ops.
 
 Rootsymbol template.
 
@@ -32,6 +32,10 @@ template_exprs ->
 template_exprs ->
   tag tag_attrs : make_tag('$1', '$2').
 template_exprs ->
+  body_tag expr_end : make_tag('$1', [], []).
+template_exprs ->
+  body_tag tag_attrs expr_end : make_tag('$1', '$2', []).
+template_exprs ->
   body_tag template_exprs expr_end : make_tag('$1', [], '$2').
 template_exprs ->
   body_tag tag_attrs template_exprs expr_end : make_tag('$1', '$2', '$3').
@@ -52,6 +56,10 @@ template_exprs ->
 template_exprs ->
   tag tag_attrs template_exprs : combine(make_tag('$1', '$2'), '$3').
 template_exprs ->
+  body_tag expr_end template_exprs : combine(make_tag('$1', [], []), drop_leading_eol('$3')).
+template_exprs ->
+  body_tag tag_attrs expr_end template_exprs : combine(make_tag('$1', '$2', []), drop_leading_eol('$4')).
+template_exprs ->
   body_tag template_exprs expr_end template_exprs : combine(make_tag('$1', [], '$2'), drop_leading_eol('$4')).
 template_exprs ->
   body_tag tag_attrs template_exprs expr_end template_exprs : combine(make_tag('$1', '$2', '$3'), drop_leading_eol('$5')).
@@ -66,17 +74,22 @@ tag_attrs ->
   tag_attr tag_attrs : combine('$1', '$2').
 
 tag_attr ->
-  expr_name assign integer : {assign_tag_attr, value_from('$1'), '$3'}.
+  attr_name assign integer : {assign_tag_attr, '$1', '$3'}.
 tag_attr ->
-  expr_name assign float : {assign_tag_attr, value_from('$1'), '$3'}.
+  attr_name assign float : {assign_tag_attr, '$1', '$3'}.
 tag_attr ->
-  expr_name assign string : {assign_tag_attr, value_from('$1'), '$3'}.
+  attr_name assign string : {assign_tag_attr, '$1', '$3'}.
 tag_attr ->
-  expr_name assign expr_name : {assign_tag_attr, value_from('$1'), name_to_string('$3')}.
+  attr_name assign expr_name : {assign_tag_attr, '$1', name_to_string('$3')}.
 tag_attr ->
-  expr_name assign var_value : {assign_tag_attr, value_from('$1'), '$3'}.
+  attr_name assign var_value : {assign_tag_attr, '$1', '$3'}.
 tag_attr ->
-  expr_name assign var_expr : {assign_tag_attr, value_from('$1'), '$3'}.
+  attr_name assign var_expr : {assign_tag_attr, '$1', '$3'}.
+
+attr_name ->
+  expr_name : value_from('$1').
+attr_name ->
+  string : value_from('$1').
 
 var_expr ->
   var_value gt integer : {gt, '$1', '$3'}.
