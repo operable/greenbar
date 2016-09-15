@@ -24,7 +24,7 @@ defmodule Greenbar.Mixfile do
     [
       # Direct dependencies
       {:piper, github: "operable/piper"},
-      {:greenbar_markdown, github: "operable/greenbar_markdown"},
+      {:greenbar_markdown, github: "operable/greenbar_markdown", branch: "kevsmith/cleanup-warnings"},
 
       # Test and Development
       {:mix_test_watch, "~> 0.2", only: [:dev, :test]},
