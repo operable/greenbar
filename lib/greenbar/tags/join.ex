@@ -1,5 +1,38 @@
 defmodule Greenbar.Tags.Join do
 
+  @moduledoc """
+  Iterates over a list, joining the rendered items with a separator.
+
+  With this, input of `["foo", "bar", "baz"]` could ultimately be
+  rendered to the string `"foo, bar, baz"`
+
+  By default, the joining text is `", "`
+
+  ## Examples
+
+  * Create a comma-delimited list
+  ```
+  ~join var=$names~~$item~~end~
+  ```
+
+  * Specify a custom joiner
+
+  ```
+  ~join var=$names with="-"~~$item~~end~
+  ```
+
+  * Custom binding
+  ```
+  ~join var=$names as=name~~$name~~end~
+  ```
+
+  * Bodies can contain arbitrary instructions
+  ```
+  ~join var=$users~~$item.profile.username~~end~
+  ```
+
+  """
+
   @remaining_key "__remaining__"
   @downstream_key "__downstream__"
 
