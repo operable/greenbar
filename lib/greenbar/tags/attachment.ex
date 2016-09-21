@@ -13,6 +13,7 @@ defmodule Greenbar.Tags.Attachment do
   * `image_url` -- Link to image asset (if any)
   * `author` -- Author name
   * `pretext` -- Preamble text displayed before attachment body
+  * `footer` -- Brief text that appears as the attachment's footer
 
   Any other attributes will be interpreted as custom fields and included in the attachments' `fields`
   field. Custom fields have the following structure:
@@ -116,6 +117,9 @@ defmodule Greenbar.Tags.Attachment do
   end
   defp gen_attributes({"author", value}, {attachment, fields}) do
     {Map.put(attachment, :author, value), fields}
+  end
+  defp gen_attributes({"footer", value}, {attachment, fields}) do
+    {Map.put(attachment, :footer, value), fields}
   end
   defp gen_attributes({key, value}, {attachment, fields}) do
     field = %{title: key,
