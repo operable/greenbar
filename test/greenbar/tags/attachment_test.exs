@@ -80,6 +80,18 @@ _~$thing~_
                            name: :list_item}], name: :unordered_list}] == result
   end
 
+  test "attachment with a footer attr", context do
+    result = eval_template(context.engine, "attachment_with_footer",
+                           ~s(~attachment title="Footer Test" footer="This is a footer"~~end~),
+                           %{})
+    assert [%{children: [],
+              title: "Footer Test",
+              footer: "This is a footer",
+              fields: [],
+              name: :attachment}] == result
+
+  end
+
   test "string attachment attribute names", context do
     result = eval_template(context.engine, "attachment_string_attrs",
                            "~attachment \"Error Status\"=$error~~end~",
