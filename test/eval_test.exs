@@ -236,4 +236,15 @@ defmodule Greenbar.EvalTest do
                          color: "red", fields: [], name: :attachment}]
   end
 
+  test "bold and bullets are parsed correctly", context do
+    result = eval_template(context.engine, "bold_and_bullets", Templates.bold_and_bullets, %{})
+    assert result === [%{name: :bold, text: "test"},
+                       %{children: [%{children: [%{name: :text, text: "one"}, %{name: :newline}],
+                                      name: :list_item},
+                                    %{children: [%{name: :text, text: "two"}, %{name: :newline}],
+                                      name: :list_item},
+                                    %{children: [%{name: :text, text: "three"}, %{name: :newline}],
+                                      name: :list_item}],
+                         name: :unordered_list}]
+  end
 end

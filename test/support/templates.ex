@@ -203,4 +203,12 @@ No puppies :(
 """
   end
 
+  def bold_and_bullets do
+    """
+    __test__
+    * one
+    * two
+    * three
+    """
+  end
 end
