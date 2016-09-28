@@ -1,8 +1,8 @@
 defmodule Greenbar.Runtime do
 
-    @allowed_directive_atoms Enum.sort([:text, :newline, :bold, :italics, :fixed_width, :header, :link,
-                              :attachment])
-    @allowed_directive_strings Enum.sort(Enum.map(@allowed_directive_atoms, &(Atom.to_string(&1))))
+  @allowed_directive_atoms Enum.sort([:text, :newline, :bold, :italics, :fixed_width, :header, :link,
+                                      :attachment])
+  @allowed_directive_strings Enum.sort(Enum.map(@allowed_directive_atoms, &(Atom.to_string(&1))))
 
   alias Piper.Common.Scope.Scoped
   alias Greenbar.EvaluationError

@@ -2,12 +2,12 @@ defmodule Greenbar.Template do
 
   alias Piper.Common.Scope
   alias Piper.Common.Scope.Scoped
-  alias Greenbar.Generator
+  alias Greenbar.Compiler
 
   defstruct [:name, :template_fn, :source, :hash, :timestamp, :debug_source]
 
   def compile!(name, parsed, opts \\ []) do
-    quoted = Generator.generate_template(parsed)
+    quoted = Compiler.compile(parsed)
     {template_fn, _} = Code.eval_quoted(quoted)
     debug_source = if Keyword.get(opts, :debug, false) == true do
       Macro.to_string(quoted)
