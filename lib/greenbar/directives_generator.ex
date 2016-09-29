@@ -26,7 +26,6 @@ defmodule Greenbar.DirectivesGenerator do
   end
   defp parse_markdown(value), do: [value]
 
-  defp make_text_node(""), do: %{name: :newline}
   defp make_text_node(text), do: %{name: :text, text: text}
 
   defp drop_trailing_newline([]), do: []
