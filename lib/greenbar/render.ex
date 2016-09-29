@@ -1,24 +1,25 @@
 defmodule Greenbar.Render do
 
   alias Greenbar.Runtime
+  alias Greenbar.Runtime.Buffer
   alias Greenbar.Tag
 
   def text(buffer, text) do
-    Runtime.add_to_buffer(%{name: :text, text: text}, buffer)
+    Buffer.append!(buffer, %{name: :text, text: text})
   end
 
   def eol(buffer) do
-    Runtime.add_to_buffer(%{name: :newline}, buffer)
+    Buffer.append!(buffer, %{name: :newline})
   end
 
   def var(buffer, name, scope) do
     value = Runtime.var_to_text(scope, name)
-    Runtime.add_to_buffer(%{name: :text, text: value}, buffer)
+    Buffer.append!(buffer, %{name: :text, text: value})
   end
 
   def var(buffer, name, ops, scope) do
     value = Runtime.var_to_text(scope, name, ops)
-    Runtime.add_to_buffer(%{name: :text, text: value}, buffer)
+    Buffer.append!(buffer, %{name: :text, text: value})
   end
 
   def tag(buffer, name, scope) do

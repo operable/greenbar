@@ -3,6 +3,7 @@ defmodule Greenbar.Template do
   alias Piper.Common.Scope
   alias Piper.Common.Scope.Scoped
   alias Greenbar.Compiler
+  alias Greenbar.Runtime.Buffer
 
   defstruct [:name, :template_fn, :source, :hash, :timestamp, :debug_source]
 
@@ -20,7 +21,7 @@ defmodule Greenbar.Template do
   def eval!(%__MODULE__{}=template, engine, scope) do
     eval_scope = Scope.from_map(scope)
     {:ok, eval_scope} = Scoped.set(eval_scope, "__ENGINE__", engine)
-    template.template_fn.(eval_scope, [])
+    template.template_fn.(eval_scope, %Buffer{})
   end
 
 end
@@ -28,7 +29,7 @@ end
 defimpl String.Chars, for: Greenbar.Template do
 
   def to_string(template) do
-    "Greenbar.Template<name: #{template.name},timestamp: #{template.timestamp}, hash: #{template.hash}>"
+    "#Greenbar.Template<name: #{template.name},timestamp: #{template.timestamp}, hash: #{template.hash}>"
   end
 
 end

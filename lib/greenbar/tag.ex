@@ -117,7 +117,7 @@ defmodule Greenbar.Tag do
 
   alias Piper.Common.Scope
   alias Piper.Common.Scope.Scoped
-  alias Greenbar.Runtime
+  alias Greenbar.Runtime.Buffer
 
   @type tag_attrs :: Map.t
   @type directive_output :: map
@@ -138,7 +138,7 @@ defmodule Greenbar.Tag do
 
   @callback render(id :: pos_integer, attrs :: tag_attrs, scope :: Scoped.t) :: render_response
   @callback post_body(id :: pos_integer, attrs :: tag_attrs, tag_scope :: Scoped.t,
-    body_scope :: Scoped.t, body_buffer :: [tag_output]) :: {:ok, Scoped.t, [tag_output]} | error_response
+    body_scope :: Scoped.t, body_buffer :: %Buffer{}) :: {:ok, Scoped.t, %Buffer{}} | error_response
 
   defmacro __using__(opts) do
     tag_name = tag_name!(opts, __CALLER__)
@@ -150,6 +150,8 @@ defmodule Greenbar.Tag do
       import unquote(__MODULE__), only: [get_attr: 2, get_attr: 3,
                                          new_scope: 1, make_tag_key: 2, get: 3,
                                          get: 4, put: 4]
+
+      alias Greenbar.Runtime.Buffer
 
       def name(), do: unquote(tag_name)
       def body?(), do: unquote(body_flag)
@@ -255,7 +257,7 @@ defmodule Greenbar.Tag do
     end
   end
 
-  def render!(tag_id, tag_mod, attrs, scope, buffer) when is_map(scope) and is_list(buffer) do
+  def render!(tag_id, tag_mod, attrs, scope, %Buffer{}=buffer) when is_map(scope) do
     case tag_mod.render(tag_id, attrs, scope) do
       {action, _scope, _body_scope} when action in [:again, :once] ->
         raise Greenbar.EvaluationError, message: "Tag module '#{tag_mod}' returned a body response with no tag body"
@@ -264,29 +266,29 @@ defmodule Greenbar.Tag do
       {:halt, scope} ->
         {scope, buffer}
       {:halt, output, scope} ->
-        {scope, Runtime.add_tag_output!(output, buffer, tag_mod)}
+        {scope, Buffer.append!(buffer, output)}
       {:error, reason} ->
         raise_eval_error(reason)
     end
   end
 
-  def render!(tag_id, tag_mod, attrs, body_fn, scope, buffer) when is_map(scope) and is_list(buffer) do
+  def render!(tag_id, tag_mod, attrs, body_fn, scope, %Buffer{}=buffer) when is_map(scope) do
     result = tag_mod.render(tag_id, attrs, scope)
     case  result do
       {:again, scope, body_scope} ->
         {scope, buffer} = render_body!(tag_id, tag_mod, attrs, scope, body_scope, body_fn, buffer)
         render!(tag_id, tag_mod, attrs, body_fn, scope, buffer)
       {:again, output, scope, body_scope} ->
-        buffer = Runtime.add_tag_output!(output, buffer, tag_mod)
+        buffer = Buffer.append!(buffer, output)
         {scope, buffer} = render_body!(tag_id, tag_mod, attrs, scope, body_scope, body_fn, buffer)
         render!(tag_id, tag_mod, attrs, body_fn, scope, buffer)
       {:once, scope, body_scope} ->
         render_body!(tag_id, tag_mod, attrs, scope, body_scope, body_fn, buffer)
       {:once, output, scope, body_scope} ->
-        buffer = Runtime.add_tag_output!(output, buffer, tag_mod)
+        buffer = Buffer.append!(buffer, output)
         render_body!(tag_id, tag_mod, attrs, scope, body_scope, body_fn, buffer)
       {:halt, output, scope} ->
-        {scope, Runtime.add_tag_output!(output, buffer, tag_mod)}
+        {scope, Buffer.append!(buffer, output)}
       {:halt, scope} ->
         {scope, buffer}
       {:error, reason} ->
@@ -295,19 +297,19 @@ defmodule Greenbar.Tag do
   end
 
   defp render_body!(tag_id, tag_mod, tag_attrs, tag_scope, body_scope, body_fn, tag_buffer) do
-    {body_scope, body_buffer} = case body_fn.(body_scope, []) do
-                                  {body_scope, updated} ->
+    {body_scope, body_buffer} = case body_fn.(body_scope, %Buffer{}) do
+                                  {body_scope, %Buffer{}=updated} ->
                                     {body_scope, updated}
-                                  updated when is_list(updated) ->
+                                  %Buffer{}=updated ->
                                     {body_scope, updated}
                                   nil ->
-                                    {body_scope, []}
+                                    {body_scope, %Buffer{}}
                                 end
     case tag_mod.post_body(tag_id, tag_attrs, tag_scope, body_scope, body_buffer) do
-      {:ok, tag_scope, updated_body_buffer} when is_list(updated_body_buffer) ->
-        {tag_scope, Runtime.add_tag_output!(Enum.reverse(updated_body_buffer), tag_buffer, tag_mod)}
-      {:ok, tag_scope, updated_body_buffer} ->
-        {tag_scope, Runtime.add_tag_output!(updated_body_buffer, tag_buffer, tag_mod)}
+      {:ok, tag_scope, %Buffer{}=updated_body_buffer} ->
+        {tag_scope, Buffer.join(tag_buffer, updated_body_buffer)}
+      {:ok, _, body} ->
+        raise_eval_error("Invalid value returned from #{tag_mod}.post_body/5: #{inspect body}")
       {:error, reason} ->
         raise_eval_error(reason)
     end

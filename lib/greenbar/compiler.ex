@@ -7,10 +7,10 @@ defmodule Greenbar.Compiler do
     quoted_body = Enum.map(body, &emit/1)
     quote do
       alias Greenbar.Runtime
+      alias Greenbar.Runtime.Buffer
       alias Greenbar.Tag
       fn(scope, buffer) ->
         unquote_splicing(quoted_body)
-        buffer = Enum.reverse(buffer)
         Greenbar.DirectivesGenerator.generate(buffer)
       end
     end

@@ -1,5 +1,7 @@
 defmodule Greenbar.Tags.Attachment do
 
+  alias Greenbar.Runtime.Buffer
+
   @moduledoc """
   Wraps body in an attachment directive
 
@@ -83,8 +85,9 @@ defmodule Greenbar.Tags.Attachment do
   def post_body(_id, attrs, scope, _body_scope, response) do
     attachment = make_attachment(attrs)
     # Reverse the body to get it in the correct order for the attachment
-    children = Enum.reverse(response)
-    {:ok, scope, Map.put(attachment, :children, children)}
+    buffer = %Buffer{}
+    attachment = Map.put(attachment, :children, Buffer.items(response))
+    {:ok, scope, Buffer.append!(buffer, attachment)}
   end
 
   defp make_attachment(nil) do

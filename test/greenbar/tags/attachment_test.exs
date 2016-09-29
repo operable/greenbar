@@ -21,8 +21,7 @@ defmodule Greenbar.Tags.AttachmentTest do
     assert [%{name: :attachment,
               fields: [],
               children: [
-                %{name: :text, text: "body"},
-                %{name: :newline}
+                %{name: :text, text: "body"}
               ]}] == result
   end
 
@@ -116,8 +115,7 @@ _~$thing~_
               pretext: "pretext",
               fields: [],
               children: [
-                %{name: :text, text: "body"},
-                %{name: :newline}
+                %{name: :text, text: "body"}
               ]}] == result
   end
 
