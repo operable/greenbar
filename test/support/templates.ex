@@ -206,6 +206,7 @@ No puppies :(
   def bold_and_bullets do
     """
     __test__
+
     * one
     * two
     * three
