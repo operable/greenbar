@@ -1,8 +1,8 @@
 defmodule Greenbar.Runtime do
 
-    @allowed_directive_atoms Enum.sort([:text, :newline, :bold, :italics, :fixed_width, :header, :link,
-                              :attachment])
-    @allowed_directive_strings Enum.sort(Enum.map(@allowed_directive_atoms, &(Atom.to_string(&1))))
+  @allowed_directive_atoms Enum.sort([:text, :newline, :bold, :italics, :fixed_width, :header, :link,
+                                      :attachment])
+  @allowed_directive_strings Enum.sort(Enum.map(@allowed_directive_atoms, &(Atom.to_string(&1))))
 
   alias Piper.Common.Scope.Scoped
   alias Greenbar.EvaluationError
@@ -83,34 +83,10 @@ defmodule Greenbar.Runtime do
     end
   end
 
-  def add_to_buffer(%{name: :text, text: text}, [%{name: :text, text: bt}|buffer]) do
-    [%{name: :text, text: Enum.join([bt, text])}|buffer]
-  end
-  def add_to_buffer(item, buffer), do: [item|buffer]
-
   def stringify_value(nil), do: ""
   def stringify_value(value) when is_list(value) or is_map(value), do: Poison.encode!(value)
   def stringify_value(value) when is_binary(value), do: value
   def stringify_value(value), do: "#{value}"
-
-  def add_tag_output!(nil, buffer, _tag_mod), do: buffer
-  def add_tag_output!(output, buffer, _tag_mod) when is_binary(output) do
-    add_to_buffer(%{name: :text, text: output}, buffer)
-  end
-  def add_tag_output!(%{name: name}=output, buffer, tag_mod) do
-    case allowed_directive?(name) do
-      true ->
-        add_to_buffer(output, buffer)
-      false ->
-        raise Greenbar.EvaluationError, message: "Tag '#{tag_mod.name()}' returned an unknown directive: #{inspect name}"
-    end
-  end
-  def add_tag_output!(outputs, buffer, tag_mod) when is_list(outputs) do
-    Enum.reduce(outputs, buffer, fn(output, buffer) -> add_tag_output!(output, buffer, tag_mod) end)
-  end
-  def add_tag_output!(output, _, tag_mod) do
-    raise Greenbar.EvaluationError, message: "Tag '#{tag_mod.name()}' returned invalid output: #{inspect output, pretty: true}"
-  end
 
   def funcall("length", nil), do: 0
   def funcall("length", value) when is_list(value) or is_map(value) do
@@ -120,9 +96,5 @@ defmodule Greenbar.Runtime do
   def funcall(name, _) do
     raise Greenbar.EvaluationError, message: "Unknown built-in function '#{name}'"
   end
-
-  defp allowed_directive?(name) when name in @allowed_directive_atoms, do: true
-  defp allowed_directive?(name) when name in @allowed_directive_strings, do: true
-  defp allowed_directive?(_), do: false
 
 end

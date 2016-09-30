@@ -7,7 +7,10 @@ defmodule Greenbar.Test.Support.PrefixTag do
   end
 
   def post_body(_id, _attrs, scope, _body_scope, body) do
-    {:ok, scope, body ++ [%{name: :text, text: "This is the prefix tag."}]}
+    body = %Buffer{}
+           |> Buffer.append!("This is the prefix tag.")
+           |> Buffer.join(body)
+    {:ok, scope, body}
   end
 
 end
