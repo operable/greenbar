@@ -79,6 +79,28 @@ defmodule Greenbar.EvalTest do
     assert length(result) == 0
   end
 
+  test "!= check works", context do
+    result = eval_template(context.engine, "not_equal_check", Templates.not_equal_check, %{"results" =>
+                                                                                            [%{"name" => "foo", "state" => "running",
+                                                                                               "id" => "123"},
+                                                                                             %{"name" => "bar", "state" => "terminated",
+                                                                                               "id" => "456"}]})
+    assert result === [%{children: [
+                            %{name: :text, text: "ID: 123"},
+                            %{name: :newline},
+                            %{name: :text, text: "Name: foo"},
+                            %{name: :newline},
+                            %{name: :text, text: "State: running"}],
+                         color: "green", fields: [], name: :attachment},
+                       %{children: [
+                            %{name: :text, text: "ID: 456"},
+                            %{name: :newline},
+                            %{name: :text, text: "Name: bar"},
+                            %{name: :newline},
+                            %{name: :text, text: "State: terminated"}],
+                         color: "red", fields: [], name: :attachment}]
+  end
+
   test "building ordered lists works", context do
     result = eval_template(context.engine, "generated_ordered_list", Templates.generated_ordered_list, %{"users" => [%{"name" => "Susan"},
                                                                                                                      %{"name" => "Oscar"}]})

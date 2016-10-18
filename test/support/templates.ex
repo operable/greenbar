@@ -94,6 +94,27 @@ The following users can help you right here in chat:
 """
   end
 
+  def not_equal_check do
+    """
+~each var=$results as=instance~
+~if cond=$instance.state == "running"~
+~attachment color="green"~
+ID: ~$instance.id~
+Name: ~$instance.name~
+State: ~$instance.state~
+~end~
+~end~
+~if cond=$instance.state != "running"~
+~attachment color="red"~
+ID: ~$instance.id~
+Name: ~$instance.name~
+State: ~$instance.state~
+~end~
+~end~
+~end~
+"""
+  end
+
   def bound_check do
     """
 ~if cond=$user_creators not_bound?~
