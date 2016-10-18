@@ -130,7 +130,7 @@ var_expr ->
 var_expr ->
   var_value equal string : {equal, '$1', '$3'}.
 var_expr ->
-  var_value not_equal string : {equal, '$1', '$3'}.
+  var_value not_equal string : {not_equal, '$1', '$3'}.
 var_expr ->
   var_value equal expr_name : {equal, '$1', name_to_string('$3')}.
 var_expr ->
