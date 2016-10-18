@@ -1,0 +1,8 @@
+env:
+  BUILDKITE_DOCKER: true
+  BUILDKITE_DOCKER_FILE: Dockerfile.ci
+steps:
+  - command: mix do clean, deps.get && mix test
+    label: ":elixir: Unit Tests"
+    agents:
+      - docker=1.12.1
