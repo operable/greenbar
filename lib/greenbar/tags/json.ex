@@ -32,7 +32,7 @@ defmodule Greenbar.Tags.Json do
       nil ->
         {:error, "var attribute not set"}
       var ->
-        {:halt, %{name: :fixed_width, text: "#{Poison.encode!(var, pretty: true)}"}, scope}
+        {:halt, %{name: :fixed_width_block, text: "#{Poison.encode!(var, pretty: true)}"}, scope}
     end
   end
 

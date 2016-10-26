@@ -33,7 +33,7 @@ This is
 a test
 ```
 """)
-    assert output === [%{name: :fixed_width, text: "This is\na test\n"}]
+    assert output === [%{name: :fixed_width_block, text: "This is\na test"}]
   end
 
   test "headers are parsed correctly" do
