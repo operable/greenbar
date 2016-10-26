@@ -2,7 +2,7 @@ defmodule Greenbar.Runtime.Buffer do
 
   alias Greenbar.EvaluationError
 
-  @allowed_directive_atoms Enum.sort([:text, :newline, :bold, :italics, :fixed_width, :header, :link,
+  @allowed_directive_atoms Enum.sort([:text, :newline, :bold, :italics, :fixed_width, :fixed_width_block, :header, :link,
                                       :attachment])
   @allowed_directive_strings Enum.sort(Enum.map(@allowed_directive_atoms, &(Atom.to_string(&1))))
 
