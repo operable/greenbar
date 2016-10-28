@@ -1,0 +1,10 @@
+/_build
+/cover
+/deps
+/doc
+erl_crash.dump
+*.ez
+/src/*.erl
+/priv/*.so
+/priv/*.so.dSYM
+**/*.o
