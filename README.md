@@ -1,5 +1,7 @@
 ## Greenbar: The meta-template processor
 
+[![Build status](https://badge.buildkite.com/c9cae0a5a946e693b7061e6ee5ed4d610a629b776a7588e338.svg?branch=master)](https://buildkite.com/operable/greenbar)
+
 Standard template processors like erb, mustache, and eex return formatted output when they process a template.
 Normally this is just fine as most applications use common formats like HTML or JSON for their outputs.
 
