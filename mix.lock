@@ -1,5 +1,5 @@
 %{"fs": {:hex, :fs, "0.9.2", "ed17036c26c3f70ac49781ed9220a50c36775c6ca2cf8182d123b6566e49ec59", [:rebar], []},
-  "greenbar_markdown": {:git, "https://github.com/operable/greenbar_markdown.git", "1e172e231ae5a0122be7c6748da361ad0d30cac2", [tag: "0.16.0"]},
+  "greenbar_markdown": {:git, "https://github.com/operable/greenbar_markdown.git", "25836c2cb16ca2ac28f43b5df4d2b585a0b9e3dd", []},
   "mix_test_watch": {:hex, :mix_test_watch, "0.2.6", "9fcc2b1b89d1594c4a8300959c19d50da2f0ff13642c8f681692a6e507f92cab", [:mix], [{:fs, "~> 0.9.1", [hex: :fs, optional: false]}]},
   "piper": {:git, "https://github.com/operable/piper.git", "6d705f9130800f73d269fca33f04513b439b08a8", [tag: "0.16.1"]},
   "poison": {:hex, :poison, "2.2.0", "4763b69a8a77bd77d26f477d196428b741261a761257ff1cf92753a0d4d24a63", [:mix], []},

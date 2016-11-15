@@ -74,4 +74,9 @@ a test
                                       name: :list_item}], name: :ordered_list}]
   end
 
+  test "codeblocks don't nest" do
+    {:ok, output} = Markdown.analyze("```\n```\nfoo\n```\n```\n")
+    assert output === [%{name: :text, text: "foo"}, %{name: :newline}]
+  end
+
 end
