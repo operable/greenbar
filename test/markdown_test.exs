@@ -80,4 +80,14 @@ a test
     assert output === [%{name: :paragraph, children: [%{name: :text, text: "foo"}]}]
   end
 
+  test "empty link titles don't trigger a crash" do
+    {:ok, output} = Markdown.analyze("[](here)")
+    assert output === [%{name: :paragraph, children: [%{name: :link, text: "", url: "here"}]}]
+  end
+
+  test "empty link urls don't trigger a crash" do
+    {:ok, output} = Markdown.analyze("[foo]()")
+    assert output === [%{name: :paragraph, children: [%{name: :link, text: "foo", url: ""}]}]
+  end
+
 end
