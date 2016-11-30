@@ -25,6 +25,7 @@ defmodule Greenbar.Test.Support.Templates do
   def solo_variable do
     """
 This is a test.
+
 ~$item~.
 """
   end
@@ -45,7 +46,9 @@ This has been a test.
     """
 This is a test. There are ~count var=$items~ items.
 ~each var=$items~
+
   `~$item~`
+
 ~end~
 
 
@@ -160,14 +163,12 @@ No user creators available.
 
   def nested_lists do
     """
-~each var=$groups as=group~
-
-* ~$group.name~
-~each var=$group.users as=user~
-
-  1. ~$user.name~
-~end~
-~end~
+    ~each var=$groups as=group~
+    * ~$group.name~
+    ~each var=$group.users as=user~
+      1. ~$user.name~
+    ~end~
+    ~end~
     """
   end
 
