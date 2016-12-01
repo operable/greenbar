@@ -3,9 +3,7 @@ defmodule Greenbar.DirectivesGenerator do
   def generate(outputs) do
     outputs
     |> process_markdown
-    |> drop_trailing_newline
-    |> combine_text_nodes
-    |> Enum.flat_map(&split_newline/1)
+    |> post_process
   end
 
   defp process_markdown(outputs) do
@@ -18,49 +16,50 @@ defmodule Greenbar.DirectivesGenerator do
   end
   defp parse_markdown(%{name: :text, text: text}) do
     {:ok, parsed} = :greenbar_markdown.analyze(text)
-    if String.contains?(text, "\n") do
-      parsed
-    else
-      Enum.filter(parsed, &(Map.get(&1, :name) != :newline))
-    end
+    parsed
   end
   defp parse_markdown(value), do: [value]
 
   defp make_text_node(text), do: %{name: :text, text: text}
 
-  defp drop_trailing_newline([]), do: []
-  defp drop_trailing_newline(result) do
-    case :lists.last(result) do
-      %{name: :newline} ->
-        Enum.slice(result, 0, Enum.count(result) - 1)
-      _ ->
-        result
-    end
+  defp post_process(nodes) do
+    nodes
+    |> combine_text_nodes([])
+    |> parse_newlines([])
   end
 
-  defp combine_text_nodes(nodes) do
-    Enum.reduce(nodes, [], &combine_text_nodes/2) |> Enum.reverse
+  defp combine_text_nodes([], accum), do: Enum.reverse(accum)
+  defp combine_text_nodes([%{children: children}=node|rest], accum) do
+    node = Map.put(node, :children, post_process(children))
+    combine_text_nodes(rest, [node|accum])
   end
-  defp combine_text_nodes(value, []), do: [value]
-  defp combine_text_nodes(%{name: :text, text: t2text}, [%{name: :text, text: t1text}|t]) do
-    combined = %{name: :text, text: Enum.join([t1text, t2text])}
-    [combined|t]
+  defp combine_text_nodes([%{name: :text, text: t2text}|rest], [%{name: :text, text: t1text}=t1|accum]) do
+    t1 = Map.put(t1, :text, "#{t1text}#{t2text}")
+    combine_text_nodes(rest, [t1|accum])
   end
-  defp combine_text_nodes(value, accum), do: [value|accum]
+  defp combine_text_nodes([node|rest], accum) do
+    combine_text_nodes(rest, [node|accum])
+  end
 
-  defp split_newline(%{name: :attachment, children: children}=attachment) do
-    [%{attachment | children: Enum.flat_map(children, &split_newline/1)}]
+  defp parse_newlines([], accum), do: Enum.reverse(accum)
+  defp parse_newlines([%{children: children}=node|rest], accum) do
+    node = Map.put(node, :children, parse_newlines(children, []))
+    parse_newlines(rest, [node|accum])
   end
-  defp split_newline(%{name: :text, text: text}) do
-    case String.split(text, "\n", trim: true) do
+  defp parse_newlines([%{name: :text, text: text}=t1|rest], accum) do
+    split_text = text |> String.split("\n") |> Enum.reject(&(&1 == ""))
+    case split_text do
       [^text] ->
-        [%{name: :text, text: text}]
+        parse_newlines(rest, [t1|accum])
       [partial] ->
-        [%{name: :newline}, %{name: :text, text: partial}]
+        parse_newlines(rest, [make_text_node(partial), %{name: :newline}] ++ accum)
       items ->
-        items |> Enum.map(&make_text_node/1) |> Enum.intersperse(%{name: :newline})
+        parsed = items |> Enum.map(&make_text_node/1) |> Enum.intersperse(%{name: :newline}) |> Enum.reverse
+        parse_newlines(rest, parsed ++ accum)
     end
   end
-  defp split_newline(item), do: [item]
+  defp parse_newlines([node|rest], accum) do
+    parse_newlines(rest, [node|accum])
+  end
 
 end

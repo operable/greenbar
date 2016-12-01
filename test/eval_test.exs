@@ -51,9 +51,9 @@ defmodule Greenbar.EvalTest do
     names = extract_names(result)
     assert names == [{:paragraph, [:text]},
                      :newline,
-                     {:paragraph, [:text, :text, :text, :text]},
-                     {:paragraph, [:text, :text, :text, :text]},
-                     {:paragraph, [:text, :text, :text, :text]}]
+                     {:paragraph, [:text, :newline, :text, :newline, :text]},
+                     {:paragraph, [:text, :newline, :text, :newline, :text]},
+                     {:paragraph, [:text, :newline, :text, :newline, :text]}]
   end
 
   test "if tag", context do
@@ -71,7 +71,7 @@ defmodule Greenbar.EvalTest do
   test "not_empty? check works", context do
     result = eval_template(context.engine, "not_empty_check", Templates.not_empty_check, %{"user_creators" => ["bob", "sue", "frank"]})
     names = extract_names(result)
-    assert names == [:newline, {:paragraph, [:text]}, :newline, {:paragraph, [:text, :text, :text]}]
+    assert names == [:newline, {:paragraph, [:text]}, :newline, {:paragraph, [:text, :newline, :text, :newline, :text]}]
     result = eval_template(context.engine, "not_empty_check", Templates.not_empty_check, %{})
     assert length(result) == 0
   end
@@ -83,12 +83,17 @@ defmodule Greenbar.EvalTest do
                                                                                              %{"name" => "bar", "state" => "terminated",
                                                                                                "id" => "456"}]})
     assert result === [%{children: [%{children: [%{name: :text, text: "ID: 123"},
-                                                %{name: :text, text: "\nName: foo"},
-                                                %{name: :text, text: "\nState: running"}], name: :paragraph}],
-                        color: "green", fields: [], name: :attachment},
+                                                 %{name: :newline},
+                                                 %{name: :text, text: "Name: foo"},
+                                                 %{name: :newline},
+                                                 %{name: :text, text: "State: running"}],
+                                      name: :paragraph}],
+                         color: "green", fields: [], name: :attachment},
                        %{children: [%{children: [%{name: :text, text: "ID: 456"},
-                                                 %{name: :text, text: "\nName: bar"},
-                                                 %{name: :text, text: "\nState: terminated"}], name: :paragraph}],
+                                                 %{name: :newline},
+                                                 %{name: :text, text: "Name: bar"},
+                                                 %{name: :newline},
+                                                 %{name: :text, text: "State: terminated"}], name: :paragraph}],
                          color: "red", fields: [], name: :attachment}]
   end
 
@@ -148,14 +153,20 @@ defmodule Greenbar.EvalTest do
                                                                                            "relay_groups" => [%{"name" => "preprod"},
                                                                                                               %{"name" => "prod"}]}]})
     assert result === [%{children: [%{name: :text, text: "ID: aaaa-bbbb-cccc-dddd-eeee-ffff"},
-                                    %{name: :text, text: "\nName: my"}, %{name: :text, text: "_bundle"}],
+                                    %{name: :newline}, %{name: :text, text: "Name: my_bundle"}],
                          name: :paragraph},
                        %{children: [%{name: :text, text: "Versions: 0.0.1"},
-                                    %{name: :text, text: "\n0.0.2"}, %{name: :text, text: "\n0.0.3"}],
+                                    %{name: :newline},
+                                    %{name: :text, text: "0.0.2"},
+                                    %{name: :newline},
+                                    %{name: :text, text: "0.0.3"}],
                          name: :paragraph},
                        %{children: [%{name: :text, text: "Enabled Version: 0.0.3"},
-                                    %{name: :text, text: "\nRelay Groups: preprod"},
-                                    %{name: :text, text: "\nprod"}], name: :paragraph}]
+                                    %{name: :newline},
+                                    %{name: :text, text: "Relay Groups: preprod"},
+                                    %{name: :newline},
+                                    %{name: :text, text: "prod"}],
+                         name: :paragraph}]
   end
 
   test "length check works", context do
@@ -169,7 +180,7 @@ defmodule Greenbar.EvalTest do
     assert result === [%{name: :paragraph, children: [%{name: :text, text: "One puppy"}]}]
     result = eval_template(context.engine, "length_test", Templates.length_test, %{"pets" => %{"cats" => [1,2],
                                                                                                "puppies" => [1,2,3]}})
-    assert result === [%{name: :paragraph, children: [%{name: :text, text: "Lots of puppies"}, %{name: :text, text: "!"}]}]
+    assert result === [%{name: :paragraph, children: [%{name: :text, text: "Lots of puppies!"}]}]
   end
 
   test "bound check works", context do
@@ -240,8 +251,10 @@ defmodule Greenbar.EvalTest do
   test "wrapping body works", context do
     result = eval_template(context.engine, "foo1", "~prefix~\nThis is a test\nThis is another test\n~end~", %{})
     assert result === [%{name: :paragraph, children: [%{name: :text, text: "This is the prefix tag."},
-                                                      %{name: :text, text: "\nThis is a test"},
-                                                      %{name: :text, text: "\nThis is another test"}]}]
+                                                      %{name: :newline},
+                                                      %{name: :text, text: "This is a test"},
+                                                      %{name: :newline},
+                                                      %{name: :text, text: "This is another test"}]}]
   end
 
   test "attachment tag's body is in the correct order", context do
