@@ -56,13 +56,13 @@ template_exprs ->
 template_exprs ->
   tag tag_attrs template_exprs : combine(make_tag('$1', '$2'), '$3').
 template_exprs ->
-  body_tag expr_end template_exprs : combine(make_tag('$1', [], []), drop_leading_eol('$3')).
+  body_tag expr_end template_exprs : combine(make_tag('$1', [], []), maybe_drop_leading_eol('$1', '$3')).
 template_exprs ->
-  body_tag tag_attrs expr_end template_exprs : combine(make_tag('$1', '$2', []), drop_leading_eol('$4')).
+  body_tag tag_attrs expr_end template_exprs : combine(make_tag('$1', '$2', []), maybe_drop_leading_eol('$1', '$4')).
 template_exprs ->
-  body_tag template_exprs expr_end template_exprs : combine(make_tag('$1', [], '$2'), drop_leading_eol('$4')).
+  body_tag template_exprs expr_end template_exprs : combine(make_tag('$1', [], '$2'), maybe_drop_leading_eol('$1', '$4')).
 template_exprs ->
-  body_tag tag_attrs template_exprs expr_end template_exprs : combine(make_tag('$1', '$2', '$3'), drop_leading_eol('$5')).
+  body_tag tag_attrs template_exprs expr_end template_exprs : combine(make_tag('$1', '$2', '$3'), maybe_drop_leading_eol('$1', '$5')).
 template_exprs ->
   var_value template_exprs : combine('$1', '$2').
 template_exprs ->
@@ -202,6 +202,8 @@ value_from({_, _, Text}) -> Text.
 
 make_tag(Name) -> {tag, value_from(Name), nil, nil}.
 make_tag(Name, Attrs) -> {tag, value_from(Name), ensure_list(Attrs), nil}.
+make_tag({body_tag, _, <<"if">>}=Name, Attrs, Body) ->
+  {tag, value_from(Name), ensure_list(Attrs), ensure_list(Body)};
 make_tag(Name, Attrs, Body) ->
   Body1 = drop_leading_eol(Body),
   {tag, value_from(Name), ensure_list(Attrs), ensure_list(Body1)}.
@@ -214,6 +216,9 @@ make_funcall({_, _, Name}) ->
 
 ensure_list(Value) when is_list(Value) -> Value;
 ensure_list(Value) -> [Value].
+
+maybe_drop_leading_eol({body_tag, _, <<"if">>}, Rest) -> Rest;
+maybe_drop_leading_eol(_, Rest) -> drop_leading_eol(Rest).
 
 drop_leading_eol({text, <<"\n">>}) -> [];
 drop_leading_eol([{text, <<"\n">>}|T]) -> T;
@@ -242,7 +247,6 @@ pp_error({_, gb_parser, ["syntax error before: ", [[60, 60, Chars, 62, 62]]]}) -
            end,
   {error, iolist_to_binary(["Syntax error before ", Chars1])};
 pp_error({_, Module, Error}) ->
-  io:format("~p ~p~n", [Module, Error]),
   {error, iolist_to_binary(Module:format_error(Error))}.
 
 name_to_string({expr_name, Pos, Value}) -> {string, Pos, Value}.

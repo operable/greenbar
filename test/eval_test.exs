@@ -65,7 +65,7 @@ defmodule Greenbar.EvalTest do
     # Bound? succeeds
     result = eval_template(context.engine, "if_tag", Templates.if_tag, %{"item" => "`Kilroy was here`"})
     names = extract_names(result)
-    assert names == [paragraph: [:text, :fixed_width]]
+    assert names == [paragraph: [:text], paragraph: [:fixed_width]]
   end
 
   test "not_empty? check works", context do
