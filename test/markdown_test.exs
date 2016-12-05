@@ -77,7 +77,7 @@ a test
 
   test "codeblocks don't nest" do
     {:ok, output} = Markdown.analyze("```\n```\nfoo\n```\n```\n")
-    assert output === [%{name: :paragraph, children: [%{name: :text, text: "foo"}]}]
+    assert output === [%{name: :paragraph, children: [%{name: :text, text: "foo"}, %{name: :newline}]}]
   end
 
   test "empty link titles don't trigger a crash" do

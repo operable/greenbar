@@ -259,7 +259,7 @@ defmodule Greenbar.EvalTest do
 
   test "attachment tag's body is in the correct order", context do
     result = eval_template(context.engine, "foo2", "~attachment color=\"red\"~\nThis is a test\n```\nThis is another test\n```\n~end~", %{})
-    assert result === [%{children: [%{name: :paragraph, children: [%{name: :text, text: "This is a test"},
+    assert result === [%{children: [%{name: :paragraph, children: [%{name: :text, text: "This is a test"}, %{name: :newline},
                                     %{name: :fixed_width, text: "\nThis is another test\n"}]}],
                          color: "red", fields: [], name: :attachment}]
   end

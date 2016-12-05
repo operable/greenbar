@@ -52,14 +52,14 @@ defmodule Greenbar.Tags.AttachmentTest do
       """
 ~attachment~~end~
 ~each var=$things as=thing~
-_~$thing~_
+Displaying _~$thing~_
 ~end~
 """, %{"things" => ["a","b","c","d"]})
     assert [%{children: [], fields: [], name: :attachment},
-            %{name: :paragraph, children: [%{name: :italics, text: "a"},
-                                           %{name: :italics, text: "b"},
-                                           %{name: :italics, text: "c"},
-                                           %{name: :italics, text: "d"}]}] == result
+            %{name: :paragraph, children: [%{name: :text, text: "Displaying "}, %{name: :italics, text: "a"}, %{name: :newline},
+                                           %{name: :text, text: "Displaying "}, %{name: :italics, text: "b"}, %{name: :newline},
+                                           %{name: :text, text: "Displaying "}, %{name: :italics, text: "c"}, %{name: :newline},
+                                           %{name: :text, text: "Displaying "}, %{name: :italics, text: "d"}]}] == result
   end
 
   test "attachment with empty body and attrs with other template content", context do
