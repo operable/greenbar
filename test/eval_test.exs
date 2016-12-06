@@ -275,4 +275,32 @@ defmodule Greenbar.EvalTest do
                                       name: :list_item}],
                          name: :unordered_list}]
   end
+
+  test "another table with each tag", context do
+    result = eval_template(context.engine, "table_with_each", "**List of things**\n\n|Name|Status|Description|\n" <>
+      "|---|---|---|\n" <>
+      "~each var=$results as=thing~\n| ~$thing.name~ | ~$thing.status~ | ~$thing.description~ |\n" <>
+      "~end~\n", %{"results" => [%{"name" => "abc", "status" => "RUNNING", "description" => "Thing abc"},
+                                 %{"name" => "def", "status" => "CREATING", "description" => "Thing def"},
+                                 %{"name" => "ghi", "status" => "DESTROYED", "description" => "Thing ghi"}]})
+    assert result == [%{children: [%{name: :bold, text: "List of things"}], name: :paragraph},
+                      %{children: [
+                           %{children: [%{children: [%{name: :text, text: "Name"}], name: :table_cell},
+                                        %{children: [%{name: :text, text: "Status"}], name: :table_cell},
+                                        %{children: [%{name: :text, text: "Description"}], name: :table_cell}],
+                             name: :table_header},
+                           %{children: [%{children: [%{name: :text, text: "abc"}], name: :table_cell},
+                                        %{children: [%{name: :text, text: "RUNNING"}], name: :table_cell},
+                                        %{children: [%{name: :text, text: "Thing abc"}], name: :table_cell}],
+                             name: :table_row},
+                           %{children: [%{children: [%{name: :text, text: "def"}], name: :table_cell},
+                                        %{children: [%{name: :text, text: "CREATING"}], name: :table_cell},
+                                        %{children: [%{name: :text, text: "Thing def"}], name: :table_cell}],
+                             name: :table_row},
+                           %{children: [%{children: [%{name: :text, text: "ghi"}], name: :table_cell},
+                                        %{children: [%{name: :text, text: "DESTROYED"}], name: :table_cell},
+                                        %{children: [%{name: :text, text: "Thing ghi"}], name: :table_cell}],
+                             name: :table_row}],
+                        name: :table}]
+  end
 end
