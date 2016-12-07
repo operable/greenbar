@@ -21,7 +21,7 @@ defmodule Greenbar.Tags.AttachmentTest do
     assert [%{name: :attachment,
               fields: [],
               children: [
-                %{name: :text, text: "body"}
+                %{name: :paragraph, children: [%{name: :text, text: "body"}]}
               ]}] == result
   end
 
@@ -52,12 +52,14 @@ defmodule Greenbar.Tags.AttachmentTest do
       """
 ~attachment~~end~
 ~each var=$things as=thing~
-_~$thing~_
+Displaying _~$thing~_
 ~end~
 """, %{"things" => ["a","b","c","d"]})
-    assert [%{children: [], fields: [], name: :attachment}, %{name: :italics, text: "a"},
-            %{name: :newline}, %{name: :italics, text: "b"}, %{name: :newline},
-            %{name: :italics, text: "c"}, %{name: :newline}, %{name: :italics, text: "d"}] == result
+    assert [%{children: [], fields: [], name: :attachment},
+            %{name: :paragraph, children: [%{name: :text, text: "Displaying "}, %{name: :italics, text: "a"}, %{name: :newline},
+                                           %{name: :text, text: "Displaying "}, %{name: :italics, text: "b"}, %{name: :newline},
+                                           %{name: :text, text: "Displaying "}, %{name: :italics, text: "c"}, %{name: :newline},
+                                           %{name: :text, text: "Displaying "}, %{name: :italics, text: "d"}]}] == result
   end
 
   test "attachment with empty body and attrs with other template content", context do
@@ -71,11 +73,11 @@ _~$thing~_
       """, %{})
     assert [%{children: [], color: "red", fields: [], name: :attachment,
               title: "Testing 123"},
-            %{children: [%{children: [%{name: :text, text: "One"}, %{name: :newline}],
+            %{children: [%{children: [%{name: :text, text: "One"}],
                            name: :list_item},
-                         %{children: [%{name: :text, text: "Two"}, %{name: :newline}],
+                         %{children: [%{name: :text, text: "Two"}],
                            name: :list_item},
-                         %{children: [%{name: :text, text: "Three"}, %{name: :newline}],
+                         %{children: [%{name: :text, text: "Three"}],
                            name: :list_item}], name: :unordered_list}] == result
   end
 
@@ -115,7 +117,8 @@ _~$thing~_
               pretext: "pretext",
               fields: [],
               children: [
-                %{name: :text, text: "body"}
+                %{name: :paragraph,
+                  children: [%{name: :text, text: "body"}]}
               ]}] == result
   end
 

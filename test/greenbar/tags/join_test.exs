@@ -18,7 +18,7 @@ defmodule Greenbar.Tags.JoinTest do
                            "~join var=$stuff~~$item~~end~",
                            %{"stuff" => ["foo", "bar", "baz"]})
 
-    assert [%{name: :text, text: "foo, bar, baz"}] == result
+    assert [%{name: :paragraph, children: [%{name: :text, text: "foo, bar, baz"}]}] == result
   end
 
   test "simple join with non-default joiner", context do
@@ -27,7 +27,7 @@ defmodule Greenbar.Tags.JoinTest do
                            "~join var=$stuff with=\"-\" ~~$item~~end~",
                            %{"stuff" => ["foo", "bar", "baz"]})
 
-    assert [%{name: :text, text: "foo-bar-baz"}] == result
+    assert [%{name: :paragraph, children: [%{name: :text, text: "foo-bar-baz"}]}] == result
   end
 
   test "join with a body", context  do
@@ -38,7 +38,7 @@ defmodule Greenbar.Tags.JoinTest do
                                          %{"name" => "moe"},
                                          %{"name" => "curly"}]})
 
-    assert [%{name: :text, text: "larry, moe, curly"}] == result
+    assert [%{name: :paragraph, children: [%{name: :text, text: "larry, moe, curly"}]}] == result
   end
 
   test "join with single input", context do
@@ -47,7 +47,7 @@ defmodule Greenbar.Tags.JoinTest do
                            "~join var=$stuff~~$item~~end~",
                            %{"stuff" => ["highlander"]})
 
-    assert [%{name: :text, text: "highlander"}] == result
+    assert [%{name: :paragraph, children: [%{name: :text, text: "highlander"}]}] == result
   end
 
   test "nested joins", context do
@@ -58,6 +58,7 @@ defmodule Greenbar.Tags.JoinTest do
                                          ["four", "five", "six"],
                                          ["seven", "eight", "nine"]]})
 
-    assert [%{name: :text, text: "one, two, three-four, five, six-seven, eight, nine"}] == result
+    assert [%{name: :paragraph, children: [
+                 %{name: :text, text: "one, two, three-four, five, six-seven, eight, nine"}]}] == result
   end
 end

@@ -49,7 +49,7 @@ defmodule Greenbar.ParserTest do
 
   test "solo variables are parsed", context do
     {:ok, template} = Engine.parse(context.engine, Templates.solo_variable)
-    [{:text, "This is a test.\n"}, {:var, "item", nil}, {:text, ".\n"}] = template
+    [{:text, "This is a test.\n\n"}, {:var, "item", nil}, {:text, ".\n"}] = template
   end
 
   test "comments w/o terminating newlines are parsed", context do
