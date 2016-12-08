@@ -14,7 +14,11 @@ defmodule Greenbar.Mixfile do
 
   def application do
     [applications: [:crypto,
-                    :logger]]
+                    :logger,
+                    :piper,
+                    :greenbar_markdown,
+                    :table_rex,
+                    :poison]]
   end
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]
@@ -25,6 +29,8 @@ defmodule Greenbar.Mixfile do
       # Direct dependencies
       {:piper, github: "operable/piper"},
       {:greenbar_markdown, github: "operable/greenbar_markdown"},
+      {:poison, "~> 2.0"},
+      {:table_rex, "~> 0.8"},
 
       # Test and Development
       {:mix_test_watch, "~> 0.2", only: [:dev, :test]},

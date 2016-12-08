@@ -41,13 +41,34 @@ defmodule Greenbar.Engine do
     end
   end
 
-  def eval!(%__MODULE__{}=engine, name, scope \\ %{}) when is_binary(name) do
+  def eval!(%__MODULE__{}=engine, name, opts) when is_binary(name) do
+    scope = Keyword.get(opts, :scope, %{})
     case get_template(engine, name) do
       nil ->
         {:error, :not_found}
       template ->
-        Template.eval!(template, engine, scope)
+        directives = Template.eval!(template, engine, scope)
+        case select_renderer(Keyword.get(opts, :render)) do
+          nil ->
+            directives
+          render_mod ->
+            directives
+            |> Poison.encode!
+            |> Poison.decode!
+            |> render_mod.render
+            |> return_output
+        end
     end
+  end
+
+  defp return_output(output) when is_binary(output) do
+    [output: output]
+  end
+  defp return_output({output, []}) do
+    [output: output]
+  end
+  defp return_output({output, attachment}) do
+    [output: output, attachment: attachment]
   end
 
   def has_template?(%__MODULE__{}=engine, name) do
@@ -108,5 +129,9 @@ defmodule Greenbar.Engine do
       end
     end
   end
+
+  defp select_renderer(:slack), do: Greenbar.Renderers.SlackRenderer
+  defp select_renderer(:hipchat), do: Greenbar.Renderers.HipChatRenderer
+  defp select_renderer(_), do: nil
 
 end

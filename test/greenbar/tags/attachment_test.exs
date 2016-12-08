@@ -9,7 +9,7 @@ defmodule Greenbar.Tags.AttachmentTest do
 
   defp eval_template(engine, name, template, args) do
     engine = Engine.compile!(engine, name, template)
-    Engine.eval!(engine, name, args)
+    Engine.eval!(engine, name, scope: args)
   end
 
   test "attachment with body", context do
