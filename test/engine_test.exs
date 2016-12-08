@@ -15,4 +15,13 @@ defmodule Greenbar.EngineTest do
     assert template1.name === template2.name
   end
 
+  test "engine can render templates" do
+    {:ok, engine} = Engine.new
+    engine = Engine.compile!(engine, "foo", "__this is a test__")
+    result = Engine.eval!(engine, "foo", render: :slack)
+    assert result == [output: "*this is a test*"]
+    result = Engine.eval!(engine, "foo", render: :hipchat)
+    assert result == [output: "<strong>this is a test</strong>"]
+  end
+
 end
