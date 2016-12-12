@@ -37,6 +37,7 @@ defmodule Greenbar.Runtime do
 
   def empty?(nil), do: true
   def empty?(value) when is_list(value), do: Enum.count(value) == 0
+  def empty?(value) when value == %{}, do: true
   def empty?(_), do: false
 
   def bound?(nil), do: false
