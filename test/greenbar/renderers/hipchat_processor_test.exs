@@ -140,4 +140,33 @@ defmodule Greenbar.Test.Test.HipChatRendererTest do
 
     assert expected == rendered
   end
+
+    test "handles table cells that have fixed-width formatting" do
+    directives = [%{"name" => "table",
+                   "children" => [%{"name" => "table_header",
+                                    "children" => [
+                                      %{"name" => "table_cell",
+                                        "children" => [
+                                          %{"name" => "text",
+                                            "text" => "Foo"}]}]},
+                                  %{"name" => "table_row",
+                                    "children" => [
+                                      %{"name" => "table_cell",
+                                        "children" => [
+                                          %{"name" => "fixed_width",
+                                            "text" => "Hello World"}]}]}]}]
+
+    rendered = HipChatRenderer.render(directives)
+    expected = """
+    <pre>+-------------+
+    | Foo         |
+    +-------------+
+    | Hello World |
+    +-------------+
+    </pre>
+    """ |> String.strip
+
+    assert expected == rendered
+  end
+
 end

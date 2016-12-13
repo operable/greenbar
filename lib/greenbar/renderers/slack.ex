@@ -53,6 +53,8 @@ defmodule Greenbar.Renderers.SlackRenderer do
     do: "_#{text}_"
   defp process_directive(%{"name" => "bold", "text" => text}, _),
     do: "*#{text}*"
+  defp process_directive(%{"name" => "fixed_width", "text" => text}, in_fixed_width_block: true),
+    do: text
   defp process_directive(%{"name" => "fixed_width", "text" => text}, _),
     do: "`#{text}`"
   defp process_directive(%{"name" => "fixed_width_block", "text" => text}, _),
@@ -63,7 +65,7 @@ defmodule Greenbar.Renderers.SlackRenderer do
                            "children" => [%{"name" => "table_header",
                                             "children" => header}|rows]}, _) do
     headers = map(header)
-    case map(rows) do
+    case Enum.map(rows, &process_directive(&1, in_fixed_width_block: true)) do
       [] ->
         # TableRex doesn't currently like tables without
         # rows for some reason... so we get to render an
@@ -73,10 +75,10 @@ defmodule Greenbar.Renderers.SlackRenderer do
         "```#{TableRex.quick_render!(rows, headers)}```"
     end <> "\n\n"
   end
-  defp process_directive(%{"name" => "table_row", "children" => children}, _),
-    do: map(children)
-  defp process_directive(%{"name" => "table_cell", "children" => children}, _),
-    do: Enum.map_join(children, &process_directive/1)
+  defp process_directive(%{"name" => "table_row", "children" => children}, context),
+    do: Enum.map(children, &process_directive(&1, context))
+  defp process_directive(%{"name" => "table_cell", "children" => children}, context),
+    do: Enum.map_join(children, &process_directive(&1, context))
   defp process_directive(%{"name" => "newline"}, _),
     do: "\n"
   defp process_directive(%{"name" => "unordered_list", "children" => children}, _),
