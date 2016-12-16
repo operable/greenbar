@@ -14,52 +14,61 @@ defmodule Greenbar.Renderers.HipChatRenderer do
     |> String.replace(~r/(<br\/>)+\z/, "")
   end
 
-  defp process_directive(%{"name" => "attachment"}=attachment) do
+  ########################################################################
+
+  # A keyword list is passed as context, for directives where that is
+  # useful.
+  defp process_directive(directive),
+    do: process_directive(directive, [])
+
+  defp process_directive(%{"name" => "attachment"}=attachment, _) do
     rendered_body = @attachment_fields
     |> Enum.reduce([], &(render_attachment(&1, &2, attachment)))
     |> List.flatten
     |> Enum.join
     rendered_body <> "<br/>"
   end
-  defp process_directive(%{"name" => "text", "text" => text}),
+  defp process_directive(%{"name" => "text", "text" => text}, _),
     do: text
-  defp process_directive(%{"name" => "italics", "text" => text}),
+  defp process_directive(%{"name" => "italics", "text" => text}, _),
     do: "<i>#{text}</i>"
-  defp process_directive(%{"name" => "bold", "text" => text}),
+  defp process_directive(%{"name" => "bold", "text" => text}, _),
     do: "<strong>#{text}</strong>"
-  defp process_directive(%{"name" => "fixed_width", "text" => text}),
+  defp process_directive(%{"name" => "fixed_width", "text" => text}, in_fixed_width_block: true),
+    do: text
+  defp process_directive(%{"name" => "fixed_width", "text" => text}, _),
     do: "<code>#{text}</code>"
-  defp process_directive(%{"name" => "fixed_width_block", "text" => text}),
+  defp process_directive(%{"name" => "fixed_width_block", "text" => text}, _),
     do: "<pre>#{text}</pre>"
-  defp process_directive(%{"name" => "paragraph", "children" => children}) do
+  defp process_directive(%{"name" => "paragraph", "children" => children}, _) do
       Enum.map_join(children, &process_directive/1) <> "<br/><br/>"
   end
   # If you try to render a link with nil or blank text, HipChat displays nothing to the user.
   # This way at least a link is rendered. This basically mirrors the default Slack behavior.
-  defp process_directive(%{"name" => "link", "text" => text, "url" => url}) when text in [nil, ""],
+  defp process_directive(%{"name" => "link", "text" => text, "url" => url}, _) when text in [nil, ""],
     do: "<a href='#{url}'>#{url}</a>"
   # Rendering a link in HipChat with a nil or blank url will obviously result in an invalid link. We
   # inform the user inline that there was a problem and log a warning.
-  defp process_directive(%{"name" => "link", "text" => text, "url" => url}=directive) when url in [nil, ""] do
+  defp process_directive(%{"name" => "link", "text" => text, "url" => url}=directive, _) when url in [nil, ""] do
     Logger.warn("Invalid link; #{inspect directive}")
     ~s[(invalid link! text:"#{text}" url: "#{inspect url}")]
   end
-  defp process_directive(%{"name" => "link", "text" => text, "url" => url}),
+  defp process_directive(%{"name" => "link", "text" => text, "url" => url}, _),
     do: "<a href='#{url}'>#{text}</a>"
 
-  defp process_directive(%{"name" => "newline"}), do: "<br/>"
+  defp process_directive(%{"name" => "newline"}, _), do: "<br/>"
 
-  defp process_directive(%{"name" => "unordered_list", "children" => children}) do
+  defp process_directive(%{"name" => "unordered_list", "children" => children}, _) do
     items = Enum.map_join(children, &process_directive/1)
     "<ul>#{items}</ul><br/>"
   end
 
-  defp process_directive(%{"name" => "ordered_list", "children" => children}) do
+  defp process_directive(%{"name" => "ordered_list", "children" => children}, _) do
     items = Enum.map_join(children, &process_directive/1)
     "<ol>#{items}</ol><br/>"
   end
 
-  defp process_directive(%{"name" => "list_item", "children" => children}) do
+  defp process_directive(%{"name" => "list_item", "children" => children}, _) do
     children = case List.last(children) do
                  %{"name" => "newline"} ->
                    List.delete_at(children, -1)
@@ -76,10 +85,10 @@ defmodule Greenbar.Renderers.HipChatRenderer do
 
   defp process_directive(%{"name" => "table",
                            "children" => [%{"name" => "table_header",
-                                            "children" => header}|rows]}) do
+                                            "children" => header}|rows]}, _) do
     headers = map(header)
 
-    case map(rows) do
+    case Enum.map(rows, &process_directive(&1, in_fixed_width_block: true)) do
       [] ->
         # TableRex doesn't currently like tables without
         # rows for some reason... so we get to render an
@@ -89,16 +98,16 @@ defmodule Greenbar.Renderers.HipChatRenderer do
         "<pre>#{TableRex.quick_render!(rows, headers)}</pre>"
     end
   end
-  defp process_directive(%{"name" => "table_row", "children" => children}),
-    do: map(children)
-  defp process_directive(%{"name" => "table_cell", "children" => children}),
-    do: Enum.map_join(children, &process_directive/1)
+  defp process_directive(%{"name" => "table_row", "children" => children}, context),
+    do: Enum.map(children, &process_directive(&1, context))
+  defp process_directive(%{"name" => "table_cell", "children" => children}, context),
+    do: Enum.map_join(children, &process_directive(&1, context))
 
-  defp process_directive(%{"text" => text}=directive) do
+  defp process_directive(%{"text" => text}=directive, _) do
     Logger.warn("Unrecognized directive; formatting as plain text: #{inspect directive}")
     text
   end
-  defp process_directive(%{"name" => name}=directive) do
+  defp process_directive(%{"name" => name}=directive, _) do
     Logger.warn("Unrecognized directive; #{inspect directive}")
     "<br/>Unrecognized directive: #{name}<br/>"
   end
