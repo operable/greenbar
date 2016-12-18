@@ -21,6 +21,15 @@ defmodule Greenbar.Tags.IfTest do
     assert [%{name: :paragraph, children: [%{name: :text, text: "It worked!"}]}] == result
   end
 
+  test "boolean equality", context do
+    result = eval_template(context.engine,
+                           "boolean_equality",
+                           ~s[~if cond=$stuff == false~It's false!~end~],
+                           %{"stuff" => false})
+
+    assert [%{name: :paragraph, children: [%{name: :text, text: "It's false!"}]}] == result
+  end
+
   test "integer greater than", context do
     result = eval_template(context.engine,
                            "integer_greater_than",

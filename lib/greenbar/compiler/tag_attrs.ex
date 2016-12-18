@@ -16,7 +16,7 @@ defmodule Greenbar.Compiler.TagAttributes do
   defp build_attr_exprs([], attr_expr) do
     attr_expr
   end
-  defp build_attr_exprs([{:assign_tag_attr, attr_name, {type, _, value}}|t], expr) when type in [:integer, :float, :string] do
+  defp build_attr_exprs([{:assign_tag_attr, attr_name, {type, _, value}}|t], expr) when type in [:integer, :float, :string, :boolean] do
     expr = Macro.pipe(attrs_pipe_start(expr), quote do Map.put(unquote(attr_name), unquote(value)) end, 0)
     build_attr_exprs(t, expr)
   end
@@ -71,7 +71,7 @@ defmodule Greenbar.Compiler.TagAttributes do
 
   # equal
   defp build_attr_exprs([{:assign_tag_attr, attr_name, {:equal, {:var, name, ops},
-                                                        {type, _, value}}}|t], expr) when type in [:integer, :float, :string] do
+                                                        {type, _, value}}}|t], expr) when type in [:integer, :float, :string, :boolean] do
     expr = Macro.pipe(attrs_pipe_start(expr), quote do
                        Map.put(unquote(attr_name),
                        (Kernel.==(Greenbar.Runtime.var_to_value(scope, unquote(name), unquote(ops)), unquote(value))))
@@ -81,7 +81,7 @@ defmodule Greenbar.Compiler.TagAttributes do
 
   # not equal
   defp build_attr_exprs([{:assign_tag_attr, attr_name, {:not_equal, {:var, name, ops},
-                                                        {type, _, value}}}|t], expr) when type in [:integer, :float, :string] do
+                                                        {type, _, value}}}|t], expr) when type in [:integer, :float, :string, :boolean] do
     expr = Macro.pipe(attrs_pipe_start(expr), quote do
                        Map.put(unquote(attr_name),
                        (Kernel.!==(Greenbar.Runtime.var_to_value(scope, unquote(name), unquote(ops)), unquote(value))))
