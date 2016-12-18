@@ -1,6 +1,6 @@
 Terminals
 
-text integer float string var
+text integer float boolean string var
 
 dot lbracket rbracket lparen rparen
 
@@ -78,6 +78,8 @@ tag_attr ->
 tag_attr ->
   attr_name assign float : {assign_tag_attr, '$1', '$3'}.
 tag_attr ->
+  attr_name assign boolean : {assign_tag_attr, '$1', '$3'}.
+tag_attr ->
   attr_name assign string : {assign_tag_attr, '$1', '$3'}.
 tag_attr ->
   attr_name assign expr_name : {assign_tag_attr, '$1', name_to_string('$3')}.
@@ -115,6 +117,10 @@ var_expr ->
   var_value equal float : {equal, '$1', '$3'}.
 var_expr ->
   var_value not_equal float : {not_equal, '$1', '$3'}.
+var_expr ->
+  var_value equal boolean : {equal, '$1', '$3'}.
+var_expr ->
+  var_value not_equal boolean : {not_equal, '$1', '$3'}.
 var_expr ->
   var_value gt var_value : {gt, '$1', '$3'}.
 var_expr ->
