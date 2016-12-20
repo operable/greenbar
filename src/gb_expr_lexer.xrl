@@ -6,6 +6,7 @@ FLOAT                   = [0-9]+\.[0-9]+
 STRING                  = "(\\\^.|\\.|[^"])*"
 VAR                     = \$[a-zA-Z][a-zA-Z0-9_]*
 EXPR_NAME               = [a-zA-Z][a-zA-Z0-9_\-]*
+BOOLEAN                 = false|true
 ASSIGN                  = \=
 GREATER_THAN            = >
 GREATER_THAN_EQ         = >\=
@@ -26,6 +27,7 @@ SKIPPED                 = \s
 Rules.
 
 {EXPR_END}              : {token, {expr_end, TokenLine, <<"end">>}}.
+{BOOLEAN}               : {token, {boolean, TokenLine, boolean(TokenChars)}}.
 {EXPR_NAME}             : {token, parse_maybe_tag(TokenLine, ?_ES(TokenChars))}.
 {INTEGER}               : {token, {integer, TokenLine, ?_INT(TokenChars)}}.
 {FLOAT}                 : {token, {float, TokenLine, ?_FLOAT(TokenChars)}}.
@@ -99,3 +101,8 @@ is_tag(Name) ->
 
 strip_quotes(Text) ->
   re:replace(Text, "(^\"|\"$)", "", [global, {return, binary}]).
+
+boolean("true") ->
+  true;
+boolean("false") ->
+  false.
