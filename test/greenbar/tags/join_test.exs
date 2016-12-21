@@ -61,4 +61,28 @@ defmodule Greenbar.Tags.JoinTest do
     assert [%{name: :paragraph, children: [
                  %{name: :text, text: "one, two, three-four, five, six-seven, eight, nine"}]}] == result
   end
+
+  test "join inside an each", context do
+    result = eval_template(context.engine,
+                           "join_inside_an_each",
+                           """
+                           ~each var=$people as=person~
+                           **Name:** ~$person.name~
+                           **Mech Keyboards:** ~join var=$person.mech_keyboards with=", "~~$item.name~~end~
+                           ~end~
+                           """,
+                           %{"people" => [%{"name" => "Shelton",
+                                            "mech_keyboards" => []},
+                                          %{"name" => "Mark",
+                                            "mech_keyboards" => [%{"name" => "Ergodox"}]},
+                                          %{"name" => "Patrick",
+                                            "mech_keyboards" => [%{"name" => "MiniVan"}]}]})
+
+    assert [%{name: :paragraph, children: [%{name: :bold, text: "Name:"}, %{name: :text, text: " Shelton"}, %{name: :newline},
+                                           %{name: :bold, text: "Mech Keyboards:"}, %{name: :text, text: " "}, %{name: :newline},
+                                           %{name: :bold, text: "Name:"}, %{name: :text, text: " Mark"}, %{name: :newline},
+                                           %{name: :bold, text: "Mech Keyboards:"}, %{name: :text, text: " Ergodox"}, %{name: :newline},
+                                           %{name: :bold, text: "Name:"}, %{name: :text, text: " Patrick"}, %{name: :newline},
+                                           %{name: :bold, text: "Mech Keyboards:"}, %{name: :text, text: " MiniVan"}]}] = result
+  end
 end
