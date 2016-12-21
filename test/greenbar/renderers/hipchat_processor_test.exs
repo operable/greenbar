@@ -141,7 +141,7 @@ defmodule Greenbar.Test.Test.HipChatRendererTest do
     assert expected == rendered
   end
 
-    test "handles table cells that have fixed-width formatting" do
+  test "handles table cells that have fixed-width formatting" do
     directives = [%{"name" => "table",
                    "children" => [%{"name" => "table_header",
                                     "children" => [
@@ -169,4 +169,54 @@ defmodule Greenbar.Test.Test.HipChatRendererTest do
     assert expected == rendered
   end
 
+
+  test "omits a newline after attachments that are each a single line of output" do
+    directives = [%{"name" => "attachment",
+                    "fields" => [],
+                    "children" => [%{"name" => "text", "text" => "Attachment 1"}]},
+                  %{"name" => "attachment",
+                    "fields" => [],
+                    "children" => [%{"name" => "text", "text" => "Attachment 2"}]},
+                  %{"name" => "attachment",
+                    "fields" => [],
+                    "children" => [%{"name" => "text", "text" => "Attachment 3"}]},
+                  %{"name" => "attachment",
+                    "fields" => [],
+                    "children" => [%{"name" => "text", "text" => "Attachment 4"},
+                                   %{"name" => "newline"},
+                                   %{"name" => "text", "text" => "Plus a newline"}]},
+                  %{"name" => "attachment",
+                    "fields" => [],
+                    "children" => [%{"name" => "text", "text" => "Attachment 5"},
+                                   %{"name" => "newline"},
+                                   %{"name" => "text", "text" => "Plus a newline"}]},
+                  %{"name" => "attachment",
+                    "fields" => [],
+                    "children" => [%{"name" => "text", "text" => "Attachment 6"}]},
+                  %{"name" => "text",
+                    "text" => "Random text"},
+                  %{"name" => "newline"},
+                  %{"name" => "attachment",
+                    "fields" => [],
+                    "children" => [%{"name" => "text", "text" => "Attachment 7"}]}]
+
+    expected = """
+    Attachment 1<br/>
+    Attachment 2<br/>
+    Attachment 3<br/>
+    Attachment 4<br/>
+    Plus a newline<br/>
+    <br/>
+    Attachment 5<br/>
+    Plus a newline<br/>
+    <br/>
+    Attachment 6<br/>
+    Random text<br/>
+    Attachment 7
+    """ |> String.replace("\n", "")
+
+    rendered = HipChatRenderer.render(directives)
+
+    assert expected == rendered
+  end
 end
