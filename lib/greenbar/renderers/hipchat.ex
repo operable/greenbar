@@ -26,7 +26,12 @@ defmodule Greenbar.Renderers.HipChatRenderer do
     |> Enum.reduce([], &(render_attachment(&1, &2, attachment)))
     |> List.flatten
     |> Enum.join
-    rendered_body <> "<br/>"
+
+    if length(Regex.scan(~r/<br\/>/, rendered_body)) > 1 do
+      rendered_body <> "<br/>"
+    else
+      rendered_body
+    end
   end
   defp process_directive(%{"name" => "text", "text" => text}, _),
     do: text
