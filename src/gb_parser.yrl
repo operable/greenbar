@@ -224,6 +224,7 @@ ensure_list(Value) when is_list(Value) -> Value;
 ensure_list(Value) -> [Value].
 
 maybe_drop_leading_eol({body_tag, _, <<"if">>}, Rest) -> Rest;
+maybe_drop_leading_eol({body_tag, _, <<"join">>}, Rest) -> Rest;
 maybe_drop_leading_eol(_Tag, Rest) -> drop_leading_eol(Rest).
 
 drop_leading_eol({text, <<"\n">>}) -> [];
