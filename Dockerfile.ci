@@ -5,3 +5,5 @@ RUN apk -U add expat-dev gcc g++ libstdc++
 
 WORKDIR /code
 COPY . /code
+
+RUN mix deps.get
