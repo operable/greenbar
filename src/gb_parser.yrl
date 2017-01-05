@@ -6,7 +6,9 @@ dot lbracket rbracket lparen rparen
 
 expr_name expr_end tag body_tag eol
 
-assign empty not_empty gt gte lt lte equal not_equal bound not_bound.
+assign empty not_empty gt gte lt lte equal not_equal bound not_bound
+
+newline end_of_collapsible_body_tag.
 
 Nonterminals
 
@@ -17,8 +19,6 @@ Rootsymbol template.
 Nonassoc 100 expr_name.
 Nonassoc 200 tag.
 Nonassoc 300 body_tag.
-
-Expect 2.
 
 template ->
   template_exprs : ensure_list('$1').
@@ -31,6 +31,10 @@ template_exprs ->
 template_expr ->
   text : {text, value_from('$1')}.
 template_expr ->
+  newline : make_newline('$1').
+template_expr ->
+  end_of_collapsible_body_tag : nil.
+template_expr ->
   expr_name tag_attrs : unknown_tag('$1').
 template_expr ->
   expr_name tag_attrs template_exprs expr_end : unknown_tag('$1').
@@ -38,6 +42,12 @@ template_expr ->
   tag tag_attrs : make_tag('$1', '$2').
 template_expr ->
   body_tag tag_attrs template_exprs expr_end : make_tag('$1', '$2', '$3').
+template_expr ->
+  newline body_tag tag_attrs template_exprs expr_end newline :
+    combine(make_newline('$1'), make_tag('$2', '$3', maybe_combine_newline('$2', strip_newlines('$4'), make_newline('$6')))).
+template_expr ->
+  end_of_collapsible_body_tag body_tag tag_attrs template_exprs expr_end newline :
+    make_tag('$2', '$3', maybe_combine_newline('$2', strip_newlines('$4'), make_newline('$6'))).
 template_expr ->
   var_value : '$1'.
 template_expr ->
@@ -151,7 +161,8 @@ scan_and_parse(Text, Engine) when is_binary(Text) ->
   try
     case gb_lexer:scan(Text) of
       {ok, Nodes, _} ->
-        case ?MODULE:parse(Nodes) of
+        Nodes2 = [{newline, -1, <<"\n">>}] ++ Nodes ++ [{newline, -1, <<"\n">>}],
+        case ?MODULE:parse(Nodes2) of
           {error, Error} ->
             pp_error(Error);
           Parsed ->
@@ -178,31 +189,55 @@ combine(A, B) -> [A, B].
 
 value_from({_, _, Text}) -> Text.
 
+make_newline({newline, -1, _Text}) -> nil;
+make_newline({newline, _, Text}) -> {newline, Text}.
+
 make_tag(Name, nil) -> {tag, value_from(Name), nil, nil};
 make_tag(Name, Attrs) -> {tag, value_from(Name), ensure_list(Attrs), nil}.
 
-make_tag({body_tag, _, <<"if">>}=Name, Attrs, Body) ->
-  {tag, value_from(Name), ensure_list(Attrs), ensure_list(Body)};
 make_tag(Name, nil, Body) -> make_tag(Name, [], Body);
 make_tag(Name, Attrs, nil) -> make_tag(Name, Attrs, []);
 make_tag(Name, Attrs, Body) ->
-  Body1 = drop_leading_eol(Body),
-  {tag, value_from(Name), ensure_list(Attrs), ensure_list(Body1)}.
+  {tag, value_from(Name), ensure_list(Attrs), ensure_list(Body)}.
 
 make_var(Name, Ops) -> {var, Name, Ops}.
 
 make_funcall({_, _, Name}) ->
   {funcall, Name}.
 
+maybe_combine_newline({body_tag, _, <<"join">>}, Body, _Newline) ->
+  Body;
+maybe_combine_newline({body_tag, _, _}, nil, Newline) ->
+  [Newline];
+% If we've already injected a newline in an existing tag body, skip it this time.
+maybe_combine_newline({body_tag, _, _}, Body, Newline) ->
+  case lists:reverse(Body) of
+    [{tag, _, _, nil}|_] ->
+      combine(Body, Newline);
+    [{tag, _, _, TagBody}|_] ->
+      case lists:reverse(TagBody) of
+        [{newline, _}|_] ->
+          Body;
+        _ ->
+          combine(Body, Newline)
+      end;
+    _ ->
+      combine(Body, Newline)
+  end.
+
+strip_newlines(nil) -> nil;
+strip_newlines([{newline, _}|R]) ->
+  strip_newlines_reverse(lists:reverse(R));
+strip_newlines(L) ->
+  strip_newlines_reverse(lists:reverse(L)).
+
+strip_newlines_reverse([{newline, _}|R]) ->
+  lists:reverse(R);
+strip_newlines_reverse(L) ->
+  lists:reverse(L).
+
 ensure_list(Value) when is_list(Value) -> Value;
 ensure_list(Value) -> [Value].
-
-drop_leading_eol({text, <<"\n">>}) -> [];
-drop_leading_eol([{text, <<"\n">>}|T]) -> T;
-drop_leading_eol([{text, <<$\n, Text/binary>>}|T]) ->
-  [{text, Text}|T];
-drop_leading_eol(V) ->
-  V.
 
 pp_error({_, gb_lexer, {illegal, Chars}}) ->
   Chars1 = string:strip(Chars, right, $\n),

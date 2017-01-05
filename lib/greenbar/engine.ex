@@ -24,6 +24,11 @@ defmodule Greenbar.Engine do
 
   def compile!(%__MODULE__{}=engine, name, source, opts \\ []) do
     source = Enum.join([String.trim(source), "\n"])
+
+    # Used to identify back-to-back tags while parsing as newlines are reduced
+    # out when parsing the first tag
+    source = Regex.replace(~r/~end~\n/, source, "\\0%%END_OF_COLLAPSIBLE_BODY_TAG%%")
+
     hash = :crypto.hash(:sha256, source) |> Base.encode16(case: :lower)
     if should_compile?(engine, name, hash, opts) do
       case :gb_parser.scan_and_parse(source, engine) do

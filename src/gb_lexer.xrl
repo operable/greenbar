@@ -1,14 +1,18 @@
 Definitions.
 
-TEMPLATE_EXPR           = ~(\\~|"|[^~])+~
-COMMENT                 = #(.)*(\n|\r\n)
-TEXT                    = (\\#|\\~|[^#~])+
+TEMPLATE_EXPR               = ~(\\~|"|[^~])+~
+COMMENT                     = #(.)*(\n|\r\n)
+NEWLINE                     = (\n|\r\n)
+END_OF_COLLAPSIBLE_BODY_TAG = %%END_OF_COLLAPSIBLE_BODY_TAG%%
+TEXT                        = (\\#|\\~|[^#~\n\r\%])+
 
 Rules.
 
-{COMMENT}               : skip_token.
-{TEMPLATE_EXPR}         : {token, {tag_expr, TokenLine, unwrap_expr(TokenChars)}}.
-{TEXT}                  : {token, {text, TokenLine, ?_ES(TokenChars)}}.
+{COMMENT}                     : skip_token.
+{TEMPLATE_EXPR}               : {token, {tag_expr, TokenLine, unwrap_expr(TokenChars)}}.
+{NEWLINE}                     : {token, {newline, TokenLine, ?_ES(TokenChars)}}.
+{END_OF_COLLAPSIBLE_BODY_TAG} : {token, {end_of_collapsible_body_tag, TokenLine, ?_ES(TokenChars)}}.
+{TEXT}                        : {token, {text, TokenLine, ?_ES(TokenChars)}}.
 
 Erlang code.
 

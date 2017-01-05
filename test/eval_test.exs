@@ -65,7 +65,7 @@ defmodule Greenbar.EvalTest do
     # Bound? succeeds
     result = eval_template(context.engine, "if_tag", Templates.if_tag, %{"item" => "`Kilroy was here`"})
     names = extract_names(result)
-    assert names == [paragraph: [:text], paragraph: [:fixed_width]]
+    assert names == [paragraph: [:text, :newline, :fixed_width]]
   end
 
   test "not_empty? check works", context do
@@ -127,19 +127,29 @@ defmodule Greenbar.EvalTest do
   end
 
   test "nested lists work", context do
-    result = eval_template(context.engine, "nested_lists", Templates.nested_lists, %{"groups" => [%{"name" => "admins",
-                                                                                                    "users" => [%{"name" => "Big Bird"}]},
-                                                                                                  %{"name" => "accounting",
-                                                                                                    "users" => [%{"name" => "The Count"}]}]})
+    data = %{"groups" => [%{"name" => "admins",
+                            "users" => [%{"name" => "Big Bird"},
+                                        %{"name" => "Elmo"}]},
+                          %{"name" => "accounting",
+                            "users" => [%{"name" => "The Count"}]}]}
 
+    actual = eval_template(context.engine, "nested_lists", Templates.nested_lists, data)
 
-    assert result === [%{children: [%{children: [%{name: :text, text: "admins"},
-                                                 %{children: [%{children: [%{name: :text, text: "Big Bird"}],
-                                                                name: :list_item}], name: :ordered_list}], name: :list_item},
-                                    %{children: [%{name: :text, text: "accounting"},
-                                                 %{children: [%{children: [%{name: :text, text: "The Count"}],
-                                                                name: :list_item}], name: :ordered_list}], name: :list_item}],
-                         name: :unordered_list}]
+    expected = [%{name: :unordered_list,
+                  children: [%{name: :list_item,
+                               children: [%{name: :text, text: "admins"},
+                                          %{name: :ordered_list,
+                                            children: [%{name: :list_item,
+                                                         children: [%{name: :text, text: "Big Bird"}]},
+                                                       %{name: :list_item,
+                                                         children: [%{name: :text, text: "Elmo"}]}]}]},
+                             %{name: :list_item,
+                               children: [%{name: :text, text: "accounting"},
+                                          %{name: :ordered_list,
+                                            children: [%{name: :list_item,
+                                                         children: [%{name: :text, text: "The Count"}]}]}]}]}]
+
+    assert expected == actual
   end
 
   test "multiple same-scope each loops work", context do
@@ -155,7 +165,9 @@ defmodule Greenbar.EvalTest do
     assert result === [%{children: [%{name: :text, text: "ID: aaaa-bbbb-cccc-dddd-eeee-ffff"},
                                     %{name: :newline}, %{name: :text, text: "Name: my_bundle"}],
                          name: :paragraph},
-                       %{children: [%{name: :text, text: "Versions: 0.0.1"},
+                       %{children: [%{name: :text, text: "Versions:"},
+                                    %{name: :newline},
+                                    %{name: :text, text: "0.0.1"},
                                     %{name: :newline},
                                     %{name: :text, text: "0.0.2"},
                                     %{name: :newline},
@@ -163,7 +175,9 @@ defmodule Greenbar.EvalTest do
                          name: :paragraph},
                        %{children: [%{name: :text, text: "Enabled Version: 0.0.3"},
                                     %{name: :newline},
-                                    %{name: :text, text: "Relay Groups: preprod"},
+                                    %{name: :text, text: "Relay Groups:"},
+                                    %{name: :newline},
+                                    %{name: :text, text: "preprod"},
                                     %{name: :newline},
                                     %{name: :text, text: "prod"}],
                          name: :paragraph}]
@@ -250,9 +264,7 @@ defmodule Greenbar.EvalTest do
 
   test "wrapping body works", context do
     result = eval_template(context.engine, "foo1", "~prefix~\nThis is a test\nThis is another test\n~end~", %{})
-    assert result === [%{name: :paragraph, children: [%{name: :text, text: "This is the prefix tag."},
-                                                      %{name: :newline},
-                                                      %{name: :text, text: "This is a test"},
+    assert result === [%{name: :paragraph, children: [%{name: :text, text: "This is the prefix tag.This is a test"},
                                                       %{name: :newline},
                                                       %{name: :text, text: "This is another test"}]}]
   end
