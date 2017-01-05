@@ -1,8 +1,6 @@
 steps:
   - command: mix test
     label: ":elixir: Unit Tests"
-    agents:
-      queue: beta
     plugins:
       docker-compose:
         run: test
