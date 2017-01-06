@@ -50,6 +50,15 @@ defmodule Greenbar.Tags.JoinTest do
     assert [%{name: :paragraph, children: [%{name: :text, text: "highlander"}]}] == result
   end
 
+  test "join with empty input", context do
+    result = eval_template(context.engine,
+                           "join_with_one_input",
+                           "~join var=$stuff~~$item~~end~",
+                           %{"stuff" => []})
+
+    assert [] == result
+  end
+
   test "nested joins", context do
     result = eval_template(context.engine,
                            "nested",

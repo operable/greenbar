@@ -303,4 +303,29 @@ defmodule Greenbar.EvalTest do
                              name: :table_row}],
                         name: :table}]
   end
+
+  test "nested tags with conflicting vars", context do
+    template = """
+    ~each var=$results~
+    ~join var=$item.people with=", "~~$item.name~~end~
+    ~end~
+    """
+
+    data = %{
+      "results" => [%{
+        "people" => [
+          %{"name" => "Patrick"},
+          %{"name" => "Kevin"},
+          %{"name" => "Mark"},
+          %{"name" => "Shelton"}
+        ]
+      }]
+    }
+
+    actual = eval_template(context.engine, "nested_tags_with_conflicting_vars", template, data)
+
+    expected = [%{name: :paragraph, children: [%{name: :text, text: "Patrick, Kevin, Mark, Shelton"}]}]
+
+    assert expected == actual
+  end
 end

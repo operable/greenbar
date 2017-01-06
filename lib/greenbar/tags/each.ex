@@ -65,4 +65,3 @@ defmodule Greenbar.Tags.Each do
   end
 
 end
-
