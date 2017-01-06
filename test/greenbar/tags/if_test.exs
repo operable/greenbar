@@ -45,4 +45,34 @@ defmodule Greenbar.Tags.IfTest do
 
     assert [] == result
   end
+
+  test "newline removed if single line condition evaluates to false", context do
+    result = eval_template(context.engine,
+                           "single_line_if",
+                           """
+                           Cheeseburger
+                           ~if cond=$pizza bound?~Pizza~end~
+                           Lasagna
+                           """,
+                           %{})
+
+    assert [%{name: :paragraph, children: [%{name: :text, text: "Cheeseburger"},
+                                           %{name: :newline},
+                                           %{name: :text, text: "Lasagna"}]}] == result
+
+    result = eval_template(context.engine,
+                           "single_line_if",
+                           """
+                           Cheeseburger
+                           ~if cond=$pizza bound?~Pizza~end~
+                           Lasagna
+                           """,
+                           %{"pizza" => true})
+
+    assert [%{name: :paragraph, children: [%{name: :text, text: "Cheeseburger"},
+                                           %{name: :newline},
+                                           %{name: :text, text: "Pizza"},
+                                           %{name: :newline},
+                                           %{name: :text, text: "Lasagna"}]}] == result
+  end
 end

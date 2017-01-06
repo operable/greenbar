@@ -6,72 +6,57 @@ dot lbracket rbracket lparen rparen
 
 expr_name expr_end tag body_tag eol
 
-assign empty not_empty gt gte lt lte equal not_equal bound not_bound.
+assign empty not_empty gt gte lt lte equal not_equal bound not_bound
+
+newline end_of_collapsible_body_tag.
 
 Nonterminals
 
-template template_exprs tag_attrs tag_attr attr_name var_value var_expr var_ops.
+template template_exprs template_expr tag_attrs tag_attr attr_name var_value var_expr var_ops var_op.
 
 Rootsymbol template.
 
-Expect 2.
+Nonassoc 100 expr_name.
+Nonassoc 200 tag.
+Nonassoc 300 body_tag.
 
 template ->
   template_exprs : ensure_list('$1').
 
 template_exprs ->
+  template_expr template_exprs : combine('$1', '$2').
+template_exprs ->
+  '$empty' : nil.
+
+template_expr ->
   text : {text, value_from('$1')}.
-template_exprs ->
-  expr_name : unknown_tag('$1').
-template_exprs ->
+template_expr ->
+  newline : make_newline('$1').
+template_expr ->
+  end_of_collapsible_body_tag : nil.
+template_expr ->
   expr_name tag_attrs : unknown_tag('$1').
-template_exprs ->
+template_expr ->
   expr_name tag_attrs template_exprs expr_end : unknown_tag('$1').
-template_exprs ->
-  tag : make_tag('$1').
-template_exprs ->
+template_expr ->
   tag tag_attrs : make_tag('$1', '$2').
-template_exprs ->
-  body_tag expr_end : make_tag('$1', [], []).
-template_exprs ->
-  body_tag tag_attrs expr_end : make_tag('$1', '$2', []).
-template_exprs ->
-  body_tag template_exprs expr_end : make_tag('$1', [], '$2').
-template_exprs ->
+template_expr ->
   body_tag tag_attrs template_exprs expr_end : make_tag('$1', '$2', '$3').
-template_exprs ->
+template_expr ->
+  newline body_tag tag_attrs template_exprs expr_end newline :
+    combine(make_newline('$1'), make_tag('$2', '$3', maybe_combine_newline('$2', strip_newlines('$4'), make_newline('$6')))).
+template_expr ->
+  end_of_collapsible_body_tag body_tag tag_attrs template_exprs expr_end newline :
+    make_tag('$2', '$3', maybe_combine_newline('$2', strip_newlines('$4'), make_newline('$6'))).
+template_expr ->
   var_value : '$1'.
-template_exprs ->
+template_expr ->
   eol : eol.
-template_exprs ->
-  text template_exprs : combine({text, value_from('$1')}, '$2').
-template_exprs ->
-  expr_name template_exprs : unknown_tag('$1').
-template_exprs ->
-  expr_name tag_attrs template_exprs : unknown_tag('$1').
-template_exprs ->
-  expr_name tag_attrs template_exprs expr_end template_exprs : unknown_tag('$1').
-template_exprs ->
-  tag template_exprs : combine(make_tag('$1'), '$2').
-template_exprs ->
-  tag tag_attrs template_exprs : combine(make_tag('$1', '$2'), '$3').
-template_exprs ->
-  body_tag expr_end template_exprs : combine(make_tag('$1', [], []), maybe_drop_leading_eol('$1', '$3')).
-template_exprs ->
-  body_tag tag_attrs expr_end template_exprs : combine(make_tag('$1', '$2', []), maybe_drop_leading_eol('$1', '$4')).
-template_exprs ->
-  body_tag template_exprs expr_end template_exprs : combine(make_tag('$1', [], '$2'), maybe_drop_leading_eol('$1', '$4')).
-template_exprs ->
-  body_tag tag_attrs template_exprs expr_end template_exprs : combine(make_tag('$1', '$2', '$3'), maybe_drop_leading_eol('$1', '$5')).
-template_exprs ->
-  var_value template_exprs : combine('$1', '$2').
-template_exprs ->
-  eol template_exprs : combine(eol, '$2').
 
 tag_attrs ->
-  tag_attr : '$1'.
-tag_attrs ->
   tag_attr tag_attrs : combine('$1', '$2').
+tag_attrs ->
+  '$empty' : nil.
 
 tag_attr ->
   attr_name assign integer : {assign_tag_attr, '$1', '$3'}.
@@ -151,22 +136,19 @@ var_expr ->
   var_value not_bound : {not_bound, '$1'}.
 
 var_value ->
-  var : make_var(value_from('$1')).
-var_value ->
   var var_ops : make_var(value_from('$1'), '$2').
-var_value ->
-  expr_name lparen var rparen : make_var(value_from('$3'), [make_funcall('$1')]).
 var_value ->
   expr_name lparen var var_ops rparen : make_var(value_from('$3'), combine('$4', make_funcall('$1'))).
 
 var_ops ->
-  dot expr_name : [{key, value_from('$2')}].
+  var_op var_ops : combine('$1', '$2').
 var_ops ->
-  lbracket integer rbracket : [{index, value_from('$2')}].
-var_ops ->
-  dot expr_name var_ops : [{key, value_from('$2')}] ++ '$3'.
-var_ops ->
-  lbracket integer rbracket var_ops : [{index, value_from('$2')}] ++ '$4'.
+  '$empty': nil.
+
+var_op ->
+  dot expr_name : {key, value_from('$2')}.
+var_op ->
+  lbracket integer rbracket : {index, value_from('$2')}.
 
 Erlang code.
 
@@ -179,7 +161,8 @@ scan_and_parse(Text, Engine) when is_binary(Text) ->
   try
     case gb_lexer:scan(Text) of
       {ok, Nodes, _} ->
-        case ?MODULE:parse(Nodes) of
+        Nodes2 = [{newline, -1, <<"\n">>}] ++ Nodes ++ [{newline, -1, <<"\n">>}],
+        case ?MODULE:parse(Nodes2) of
           {error, Error} ->
             pp_error(Error);
           Parsed ->
@@ -197,42 +180,64 @@ scan_and_parse(Text, Engine) when is_binary(Text) ->
     erlang:erase(greenbar_engine)
   end.
 
-combine(A, B) when is_list(A),
-                   is_list(B) ->
-  [A] ++ B;
+combine(nil, B) -> combine([], B);
+combine(A, nil) -> combine(A, []);
+combine(A, B) when is_list(A), is_list(B) -> A ++ B;
 combine(A, B) when is_list(A) -> A ++ [B];
 combine(A, B) when is_list(B) -> [A|B];
 combine(A, B) -> [A, B].
 
 value_from({_, _, Text}) -> Text.
 
-make_tag(Name) -> {tag, value_from(Name), nil, nil}.
-make_tag(Name, Attrs) -> {tag, value_from(Name), ensure_list(Attrs), nil}.
-make_tag({body_tag, _, <<"if">>}=Name, Attrs, Body) ->
-  {tag, value_from(Name), ensure_list(Attrs), ensure_list(Body)};
-make_tag(Name, Attrs, Body) ->
-  Body1 = drop_leading_eol(Body),
-  {tag, value_from(Name), ensure_list(Attrs), ensure_list(Body1)}.
+make_newline({newline, -1, _Text}) -> nil;
+make_newline({newline, _, Text}) -> {newline, Text}.
 
-make_var(Name) -> {var, Name, nil}.
+make_tag(Name, nil) -> {tag, value_from(Name), nil, nil};
+make_tag(Name, Attrs) -> {tag, value_from(Name), ensure_list(Attrs), nil}.
+
+make_tag(Name, nil, Body) -> make_tag(Name, [], Body);
+make_tag(Name, Attrs, nil) -> make_tag(Name, Attrs, []);
+make_tag(Name, Attrs, Body) ->
+  {tag, value_from(Name), ensure_list(Attrs), ensure_list(Body)}.
+
 make_var(Name, Ops) -> {var, Name, Ops}.
 
 make_funcall({_, _, Name}) ->
   {funcall, Name}.
 
+maybe_combine_newline({body_tag, _, <<"join">>}, Body, _Newline) ->
+  Body;
+maybe_combine_newline({body_tag, _, _}, nil, Newline) ->
+  [Newline];
+% If we've already injected a newline in an existing tag body, skip it this time.
+maybe_combine_newline({body_tag, _, _}, Body, Newline) ->
+  case lists:reverse(Body) of
+    [{tag, _, _, nil}|_] ->
+      combine(Body, Newline);
+    [{tag, _, _, TagBody}|_] ->
+      case lists:reverse(TagBody) of
+        [{newline, _}|_] ->
+          Body;
+        _ ->
+          combine(Body, Newline)
+      end;
+    _ ->
+      combine(Body, Newline)
+  end.
+
+strip_newlines(nil) -> nil;
+strip_newlines([{newline, _}|R]) ->
+  strip_newlines_reverse(lists:reverse(R));
+strip_newlines(L) ->
+  strip_newlines_reverse(lists:reverse(L)).
+
+strip_newlines_reverse([{newline, _}|R]) ->
+  lists:reverse(R);
+strip_newlines_reverse(L) ->
+  lists:reverse(L).
+
 ensure_list(Value) when is_list(Value) -> Value;
 ensure_list(Value) -> [Value].
-
-maybe_drop_leading_eol({body_tag, _, <<"if">>}, Rest) -> Rest;
-maybe_drop_leading_eol({body_tag, _, <<"join">>}, Rest) -> Rest;
-maybe_drop_leading_eol(_Tag, Rest) -> drop_leading_eol(Rest).
-
-drop_leading_eol({text, <<"\n">>}) -> [];
-drop_leading_eol([{text, <<"\n">>}|T]) -> T;
-drop_leading_eol([{text, <<$\n, Text/binary>>}|T]) ->
-  [{text, Text}|T];
-drop_leading_eol(V) ->
-  V.
 
 pp_error({_, gb_lexer, {illegal, Chars}}) ->
   Chars1 = string:strip(Chars, right, $\n),

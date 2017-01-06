@@ -21,6 +21,11 @@ defmodule Greenbar.Compiler do
       buffer = Render.text(buffer, text)
     end
   end
+  def emit({:newline, text}) do
+    quote bind_quoted: [text: text] do
+      buffer = Render.text(buffer, text)
+    end
+  end
   def emit(:eol) do
     quote do
       buffer = Render.eol(buffer)

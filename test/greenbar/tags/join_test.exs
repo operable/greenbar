@@ -83,6 +83,6 @@ defmodule Greenbar.Tags.JoinTest do
                                            %{name: :bold, text: "Name:"}, %{name: :text, text: " Mark"}, %{name: :newline},
                                            %{name: :bold, text: "Mech Keyboards:"}, %{name: :text, text: " Ergodox"}, %{name: :newline},
                                            %{name: :bold, text: "Name:"}, %{name: :text, text: " Patrick"}, %{name: :newline},
-                                           %{name: :bold, text: "Mech Keyboards:"}, %{name: :text, text: " MiniVan"}]}] = result
+                                           %{name: :bold, text: "Mech Keyboards:"}, %{name: :text, text: " MiniVan"}]}] == result
   end
 end
