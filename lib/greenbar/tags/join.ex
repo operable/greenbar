@@ -52,19 +52,16 @@ defmodule Greenbar.Tags.Join do
                               {false, scope}
                           end
     joiner = get_attr(attrs, "with", ", ")
-    case get_remaining(scope, remaining_key, attrs) do
+    case get_remaining(scope, id, remaining_key, attrs) do
       nil ->
         {:halt, scope}
       [] ->
-        scope = scope
-        |> Scoped.erase(downstream_key)
-        |> Scoped.erase(remaining_key)
-        {:halt, scope}
+        {:halt, put(scope, id, remaining_key, [])}
       [h|t] ->
         var_name = get_attr(attrs, "as", "item")
         child_scope = new_scope(scope)
-        {:ok, child_scope} = Scoped.set(child_scope, var_name, h)
-        {:ok, scope} = set_remaining(scope, remaining_key, t)
+        child_scope = put(child_scope, :global, var_name, h)
+        scope = put(scope, id, remaining_key, t)
 
         output = if downstream do
           joiner
@@ -76,26 +73,17 @@ defmodule Greenbar.Tags.Join do
     end
   end
 
-  defp get_remaining(scope, key, attrs) do
-    case Scoped.lookup(scope, key) do
-      {:not_found, _} ->
+  defp get_remaining(scope, id, key, attrs) do
+    case get(scope, id, key) do
+      nil ->
         case get_attr(attrs, "var") do
           {:not_found, _} ->
             nil
           value ->
             value
         end
-      {:ok, value} ->
+      value ->
         value
-    end
-  end
-
-  defp set_remaining(scope, key, remaining) do
-    case Scoped.update(scope, key, remaining) do
-      {:not_found, _} ->
-        Scoped.set(scope, key, remaining)
-      {:ok, scope} ->
-        {:ok, scope}
     end
   end
 
