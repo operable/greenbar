@@ -32,6 +32,9 @@ defmodule Greenbar.Tags.Attachment do
     short: false}
   ```
 
+  When an attribute contains "-short" at the end (eg. `priority-short`), the `short` field will be set to `true`.
+  This flag indicates whether the value is short enough to be displayed side-by-side with other values.
+
   ## Example
 
   The template
@@ -149,10 +152,21 @@ defmodule Greenbar.Tags.Attachment do
     {Map.put(attachment, :ts, value), fields}
   end
   defp gen_attributes({key, value}, {attachment, fields}) do
-    field = %{title: key,
-              value: value,
-              short: false}
+    field = generate_field(key, value)
+
     {attachment, [field|fields]}
+  end
+  defp generate_field(key, value) do
+    field = %{value: value}
+
+    delimiter = "-short"
+    short = String.ends_with?(key, delimiter)
+    key = if short, do: String.trim_trailing(key, delimiter), else: key
+
+    field = Map.put(field, :title, key)
+    field = Map.put(field, :short, short)
+
+    field
   end
 
 end

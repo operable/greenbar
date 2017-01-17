@@ -133,12 +133,13 @@ Displaying _~$thing~_
   test "attachment fields", context do
     [attachment|_] = eval_template(context.engine,
                                    "attachment_fields",
-                                   "~attachment title=title field1=Foo field2=\"Bar Baz\"~body~end~",
+                                   "~attachment title=title field1=Foo field2=\"Bar Baz\" field3-short=test~body~end~",
                                    %{})
 
     fields = Enum.sort(attachment.fields)
     expected = Enum.sort([%{title: "field1", value: "Foo", short: false},
-                          %{title: "field2", value: "Bar Baz", short: false}])
+                          %{title: "field2", value: "Bar Baz", short: false},
+                          %{title: "field3", value: "test", short: true}])
 
     assert fields == expected
   end
