@@ -105,7 +105,9 @@ Displaying _~$thing~_
   test "attachment attributes", context do
     result = eval_template(context.engine,
                            "attachment_attrs",
-                           "~attachment title=title title_url=title_url color=blue image_url=image_url author=author pretext=pretext~body~end~",
+                           "~attachment title=title title_url=title_url color=blue image_url=image_url\
+                           author=author fallback=fallback thumb_url=thumb_url pretext=pretext ts=ts\
+                           author_link=author_link author_icon=author_icon footer_icon=footer_icon~body~end~",
                            %{})
 
     assert [%{name: :attachment,
@@ -114,7 +116,13 @@ Displaying _~$thing~_
               color: "blue",
               image_url: "image_url",
               author: "author",
+              fallback: "fallback",
+              thumb_url: "thumb_url",
               pretext: "pretext",
+              ts: "ts",
+              author_link: "author_link",
+              author_icon: "author_icon",
+              footer_icon: "footer_icon",
               fields: [],
               children: [
                 %{name: :paragraph,
