@@ -21,12 +21,12 @@ defmodule Greenbar.WhitespaceTest do
 
     actual = eval_template(context.engine, "bundles", template, %{"bundles" => ["ec2", "ecs", "s3"]})
 
-    expected = [%{name: :paragraph,
-                  children: [%{name: :text, text: "Bundle: ec2"},
-                             %{name: :newline},
-                             %{name: :text, text: "Bundle: ecs"},
-                             %{name: :newline},
-                             %{name: :text, text: "Bundle: s3"}]}]
+    expected = [%{"name" => "paragraph",
+                  "children" => [%{"name" => "text", "text" => "Bundle: ec2"},
+                             %{"name" => "newline"},
+                             %{"name" => "text", "text" => "Bundle: ecs"},
+                             %{"name" => "newline"},
+                             %{"name" => "text", "text" => "Bundle: s3"}]}]
 
     assert expected == actual
   end
@@ -44,16 +44,16 @@ defmodule Greenbar.WhitespaceTest do
 
     actual = eval_template(context.engine, "bundles_with_surrounding_newlines", template, %{"bundles" => ["ec2", "ecs", "s3"]})
 
-    expected = [%{name: :paragraph,
-                  children: [%{name: :text, text: "These are the bundles."}]},
-                %{name: :paragraph,
-                  children: [%{name: :text, text: "Bundle: ec2"},
-                             %{name: :newline},
-                             %{name: :text, text: "Bundle: ecs"},
-                             %{name: :newline},
-                             %{name: :text, text: "Bundle: s3"}]},
-                %{name: :paragraph,
-                  children: [%{name: :text, text: "Look at them!"}]}]
+    expected = [%{"name" => "paragraph",
+                  "children" => [%{"name" => "text", "text" => "These are the bundles."}]},
+                %{"name" => "paragraph",
+                  "children" => [%{"name" => "text", "text" => "Bundle: ec2"},
+                             %{"name" => "newline"},
+                             %{"name" => "text", "text" => "Bundle: ecs"},
+                             %{"name" => "newline"},
+                             %{"name" => "text", "text" => "Bundle: s3"}]},
+                %{"name" => "paragraph",
+                  "children" => [%{"name" => "text", "text" => "Look at them!"}]}]
 
     assert expected == actual
   end
@@ -72,16 +72,16 @@ defmodule Greenbar.WhitespaceTest do
 
     actual = eval_template(context.engine, "bundle_paragraphs_with_surrounding_newlines", template, %{"bundles" => ["ec2", "ecs", "s3"]})
 
-    expected = [%{name: :paragraph,
-                  children: [%{name: :text, text: "These are the bundles."}]},
-                %{name: :paragraph,
-                  children: [%{name: :text, text: "Bundle: ec2"}]},
-                %{name: :paragraph,
-                  children: [%{name: :text, text: "Bundle: ecs"}]},
-                %{name: :paragraph,
-                  children: [%{name: :text, text: "Bundle: s3"}]},
-                %{name: :paragraph,
-                  children: [%{name: :text, text: "Look at them!"}]}]
+    expected = [%{"name" => "paragraph",
+                  "children" => [%{"name" => "text", "text" => "These are the bundles."}]},
+                %{"name" => "paragraph",
+                  "children" => [%{"name" => "text", "text" => "Bundle: ec2"}]},
+                %{"name" => "paragraph",
+                  "children" => [%{"name" => "text", "text" => "Bundle: ecs"}]},
+                %{"name" => "paragraph",
+                  "children" => [%{"name" => "text", "text" => "Bundle: s3"}]},
+                %{"name" => "paragraph",
+                  "children" => [%{"name" => "text", "text" => "Look at them!"}]}]
 
     assert expected == actual
   end
@@ -95,25 +95,25 @@ defmodule Greenbar.WhitespaceTest do
 
     actual = eval_template(context.engine, "single_line_bundles", template, %{"bundles" => ["ec2", "ecs", "s3"]})
 
-    expected = [%{name: :paragraph,
-                  children: [%{name: :text, text: "These are the bundles."},
-                             %{name: :newline},
-                             %{name: :text, text: "Bundle: ec2"},
-                             %{name: :newline},
-                             %{name: :text, text: "Bundle: ecs"},
-                             %{name: :newline},
-                             %{name: :text, text: "Bundle: s3"},
-                             %{name: :newline},
-                             %{name: :text, text: "Look at them!"}]}]
+    expected = [%{"name" => "paragraph",
+                  "children" => [%{"name" => "text", "text" => "These are the bundles."},
+                             %{"name" => "newline"},
+                             %{"name" => "text", "text" => "Bundle: ec2"},
+                             %{"name" => "newline"},
+                             %{"name" => "text", "text" => "Bundle: ecs"},
+                             %{"name" => "newline"},
+                             %{"name" => "text", "text" => "Bundle: s3"},
+                             %{"name" => "newline"},
+                             %{"name" => "text", "text" => "Look at them!"}]}]
 
     assert expected == actual
 
     actual = eval_template(context.engine, "single_line_bundles", template, %{"bundles" => []})
 
-    expected = [%{name: :paragraph,
-                  children: [%{name: :text, text: "These are the bundles."},
-                             %{name: :newline},
-                             %{name: :text, text: "Look at them!"}]}]
+    expected = [%{"name" => "paragraph",
+                  "children" => [%{"name" => "text", "text" => "These are the bundles."},
+                             %{"name" => "newline"},
+                             %{"name" => "text", "text" => "Look at them!"}]}]
 
     assert expected == actual
   end
@@ -125,12 +125,12 @@ defmodule Greenbar.WhitespaceTest do
 
     actual = eval_template(context.engine, "template_boundary_bundles", template, %{"bundles" => ["ec2", "ecs", "s3"]})
 
-    expected = [%{name: :paragraph,
-                  children: [%{name: :text, text: "Bundle: ec2"},
-                             %{name: :newline},
-                             %{name: :text, text: "Bundle: ecs"},
-                             %{name: :newline},
-                             %{name: :text, text: "Bundle: s3"}]}]
+    expected = [%{"name" => "paragraph",
+                  "children" => [%{"name" => "text", "text" => "Bundle: ec2"},
+                             %{"name" => "newline"},
+                             %{"name" => "text", "text" => "Bundle: ecs"},
+                             %{"name" => "newline"},
+                             %{"name" => "text", "text" => "Bundle: s3"}]}]
 
     assert expected == actual
 
@@ -148,8 +148,8 @@ defmodule Greenbar.WhitespaceTest do
 
     actual = eval_template(context.engine, "inline_join", template, %{"things" => ["ec2", "ecs", "s3"]})
 
-    expected = [%{name: :paragraph,
-                  children: [%{name: :text, text: "I like many things: ec2, ecs, s3"}]}]
+    expected = [%{"name" => "paragraph",
+                  "children" => [%{"name" => "text", "text" => "I like many things: ec2, ecs, s3"}]}]
 
     assert expected == actual
   end
@@ -166,18 +166,18 @@ defmodule Greenbar.WhitespaceTest do
 
     actual = eval_template(context.engine, "back_to_back_tags", template, %{"things" => ["ec2", "ecs", "s3"]})
 
-    expected = [%{name: :paragraph,
-                  children: [%{name: :text, text: "ec2"},
-                             %{name: :newline},
-                             %{name: :text, text: "ecs"},
-                             %{name: :newline},
-                             %{name: :text, text: "s3"},
-                             %{name: :newline},
-                             %{name: :text, text: "ec2"},
-                             %{name: :newline},
-                             %{name: :text, text: "ecs"},
-                             %{name: :newline},
-                             %{name: :text, text: "s3"}]}]
+    expected = [%{"name" => "paragraph",
+                  "children" => [%{"name" => "text", "text" => "ec2"},
+                             %{"name" => "newline"},
+                             %{"name" => "text", "text" => "ecs"},
+                             %{"name" => "newline"},
+                             %{"name" => "text", "text" => "s3"},
+                             %{"name" => "newline"},
+                             %{"name" => "text", "text" => "ec2"},
+                             %{"name" => "newline"},
+                             %{"name" => "text", "text" => "ecs"},
+                             %{"name" => "newline"},
+                             %{"name" => "text", "text" => "s3"}]}]
 
     assert expected == actual
   end

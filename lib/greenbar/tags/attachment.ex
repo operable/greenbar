@@ -86,7 +86,7 @@ defmodule Greenbar.Tags.Attachment do
     attachment = make_attachment(attrs)
     # Reverse the body to get it in the correct order for the attachment
     buffer = %Buffer{}
-    attachment = Map.put(attachment, :children, Buffer.items(response))
+    attachment = Map.put(attachment, "children", Buffer.items(response))
     {:ok, scope, Buffer.append!(buffer, attachment)}
   end
 
@@ -96,38 +96,38 @@ defmodule Greenbar.Tags.Attachment do
   defp make_attachment(attrs) do
     {attachment, fields} = Enum.reduce(attrs, {%{}, []}, &(gen_attributes(&1, &2)))
     attachment
-    |> Map.put(:name, :attachment)
-    |> Map.put(:fields, fields)
+    |> Map.put("name", "attachment")
+    |> Map.put("fields", fields)
   end
 
 
   # Inspired by Slack's attachment attributes
   # See https://api.slack.com/docs/message-attachments
   defp gen_attributes({"title", value}, {attachment, fields}) do
-    {Map.put(attachment, :title, value), fields}
+    {Map.put(attachment, "title", value), fields}
   end
   defp gen_attributes({"title_url", value}, {attachment, fields}) do
-    {Map.put(attachment, :title_url, value), fields}
+    {Map.put(attachment, "title_url", value), fields}
   end
   defp gen_attributes({"pretext", value}, {attachment, fields}) do
-    {Map.put(attachment, :pretext, value), fields}
+    {Map.put(attachment, "pretext", value), fields}
   end
   defp gen_attributes({"color", value}, {attachment, fields}) do
-    {Map.put(attachment, :color, value), fields}
+    {Map.put(attachment, "color", value), fields}
   end
   defp gen_attributes({"image_url", value}, {attachment, fields}) do
-    {Map.put(attachment, :image_url, value), fields}
+    {Map.put(attachment, "image_url", value), fields}
   end
   defp gen_attributes({"author", value}, {attachment, fields}) do
-    {Map.put(attachment, :author, value), fields}
+    {Map.put(attachment, "author", value), fields}
   end
   defp gen_attributes({"footer", value}, {attachment, fields}) do
-    {Map.put(attachment, :footer, value), fields}
+    {Map.put(attachment, "footer", value), fields}
   end
   defp gen_attributes({key, value}, {attachment, fields}) do
-    field = %{title: key,
-              value: value,
-              short: false}
+    field = %{"title" => key,
+              "value" => value,
+              "short" => false}
     {attachment, [field|fields]}
   end
 

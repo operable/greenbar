@@ -10,19 +10,19 @@ defmodule Greenbar.Runtime.Buffer do
 
   def append!(%__MODULE__{}=buffer, nil), do: buffer
   def append!(%__MODULE__{}=buffer, text) when is_binary(text) do
-    append!(buffer, %{name: :text, text: text})
+    append!(buffer, %{"name" => "text", "text" => text})
   end
-  def append!(%__MODULE__{last: %{name: :text, text: t1}}=buffer, %{name: :text, text: t2}) do
-    %{buffer | last: %{name: :text, text: Enum.join([t1, t2])}}
+  def append!(%__MODULE__{last: %{"name" => "text", "text" => t1}}=buffer, %{"name" => "text", "text" => t2}) do
+    %{buffer | last: %{"name" => "text", "text" => Enum.join([t1, t2])}}
   end
-  def append!(%__MODULE__{last: nil}=buffer, %{name: name}=item) do
+  def append!(%__MODULE__{last: nil}=buffer, %{"name" => name}=item) do
     if allowed_directive?(name) do
       %{buffer | last: item}
     else
       raise EvaluationError, message: "Unknown directive: #{inspect name}"
     end
   end
-  def append!(%__MODULE__{items: items, last: last}=buffer, %{name: name}=item) do
+  def append!(%__MODULE__{items: items, last: last}=buffer, %{"name" => name}=item) do
     if allowed_directive?(name) do
       %{buffer | items: items ++ [last], last: item}
     else
@@ -69,8 +69,8 @@ defmodule Greenbar.Runtime.Buffer do
     |> Enum.reverse
   end
   defp consolidate(item, []), do: [item]
-  defp consolidate(%{name: text, text: t2}, [%{name: :text, text: t1}|t]) do
-    t3 = %{name: text, text: t1 <> t2}
+  defp consolidate(%{"name" => "text", "text" => t2}, [%{"name" => "text", "text" => t1}|t]) do
+    t3 = %{"name" => "text", "text" => t1 <> t2}
     [t3|t]
   end
   defp consolidate(item, acc), do: [item|acc]

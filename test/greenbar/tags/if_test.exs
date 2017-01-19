@@ -18,7 +18,7 @@ defmodule Greenbar.Tags.IfTest do
                            ~s[~if cond=$stuff == "stuff"~It worked!~end~],
                            %{"stuff" => "stuff"})
 
-    assert [%{name: :paragraph, children: [%{name: :text, text: "It worked!"}]}] == result
+    assert [%{"name" => "paragraph", "children" => [%{"name" => "text", "text" => "It worked!"}]}] == result
   end
 
   test "boolean equality", context do
@@ -27,7 +27,7 @@ defmodule Greenbar.Tags.IfTest do
                            ~s[~if cond=$stuff == false~It's false!~end~],
                            %{"stuff" => false})
 
-    assert [%{name: :paragraph, children: [%{name: :text, text: "It's false!"}]}] == result
+    assert [%{"name" => "paragraph", "children" => [%{"name" => "text", "text" => "It's false!"}]}] == result
   end
 
   test "integer greater than", context do
@@ -36,7 +36,7 @@ defmodule Greenbar.Tags.IfTest do
                            ~s[~if cond=$num > 5~It's greater!~end~],
                            %{"num" => 6})
 
-    assert [%{name: :paragraph, children: [%{name: :text, text: "It's greater!"}]}] == result
+    assert [%{"name" => "paragraph", "children" => [%{"name" => "text", "text" => "It's greater!"}]}] == result
 
     result = eval_template(context.engine,
                            "integer_greater_than",
@@ -56,9 +56,9 @@ defmodule Greenbar.Tags.IfTest do
                            """,
                            %{})
 
-    assert [%{name: :paragraph, children: [%{name: :text, text: "Cheeseburger"},
-                                           %{name: :newline},
-                                           %{name: :text, text: "Lasagna"}]}] == result
+    assert [%{"name" => "paragraph", "children" => [%{"name" => "text", "text" => "Cheeseburger"},
+                                           %{"name" => "newline"},
+                                           %{"name" => "text", "text" => "Lasagna"}]}] == result
 
     result = eval_template(context.engine,
                            "single_line_if",
@@ -69,10 +69,10 @@ defmodule Greenbar.Tags.IfTest do
                            """,
                            %{"pizza" => true})
 
-    assert [%{name: :paragraph, children: [%{name: :text, text: "Cheeseburger"},
-                                           %{name: :newline},
-                                           %{name: :text, text: "Pizza"},
-                                           %{name: :newline},
-                                           %{name: :text, text: "Lasagna"}]}] == result
+    assert [%{"name" => "paragraph", "children" => [%{"name" => "text", "text" => "Cheeseburger"},
+                                           %{"name" => "newline"},
+                                           %{"name" => "text", "text" => "Pizza"},
+                                           %{"name" => "newline"},
+                                           %{"name" => "text", "text" => "Lasagna"}]}] == result
   end
 end

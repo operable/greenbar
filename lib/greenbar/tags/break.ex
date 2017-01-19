@@ -34,7 +34,7 @@ defmodule Greenbar.Tags.Break do
 
 
   def render(_id, _attrs, scope) do
-    {:halt, %{name: :newline}, scope}
+    {:halt, %{"name" => "newline"}, scope}
   end
 
 end

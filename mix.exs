@@ -28,7 +28,7 @@ defmodule Greenbar.Mixfile do
     [
       # Direct dependencies
       {:piper, github: "operable/piper"},
-      {:greenbar_markdown, github: "operable/greenbar_markdown"},
+      {:greenbar_markdown, github: "operable/greenbar_markdown", branch: "kevsmith/string-keys"},
       {:poison, "~> 2.0"},
       {:table_rex, "~> 0.8"},
 

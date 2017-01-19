@@ -32,12 +32,12 @@ defmodule Greenbar.Test.Support.Assertions do
   end
 
   def extract_names([], accum), do: Enum.reverse(accum)
-  def extract_names([%{name: name, children: children}|t], accum) do
+  def extract_names([%{"name" => name, "children" => children}|t], accum) do
     children = extract_names(children)
     extract_names(t, [{name, children}|accum])
   end
-  def extract_names([%{name: name}|t], accum) do
-    extract_names(t, [name|accum])
+  def extract_names([%{"name" => name}|t], accum) do
+    extract_names(t, [name |accum])
   end
 
 end

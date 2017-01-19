@@ -18,7 +18,7 @@ defmodule Greenbar.Tags.JoinTest do
                            "~join var=$stuff~~$item~~end~",
                            %{"stuff" => ["foo", "bar", "baz"]})
 
-    assert [%{name: :paragraph, children: [%{name: :text, text: "foo, bar, baz"}]}] == result
+    assert [%{"name" => "paragraph", "children" => [%{"name" => "text", "text" => "foo, bar, baz"}]}] == result
   end
 
   test "simple join with non-default joiner", context do
@@ -27,7 +27,7 @@ defmodule Greenbar.Tags.JoinTest do
                            "~join var=$stuff with=\"-\" ~~$item~~end~",
                            %{"stuff" => ["foo", "bar", "baz"]})
 
-    assert [%{name: :paragraph, children: [%{name: :text, text: "foo-bar-baz"}]}] == result
+    assert [%{"name" => "paragraph", "children" => [%{"name" => "text", "text" => "foo-bar-baz"}]}] == result
   end
 
   test "join with a body", context  do
@@ -38,7 +38,7 @@ defmodule Greenbar.Tags.JoinTest do
                                          %{"name" => "moe"},
                                          %{"name" => "curly"}]})
 
-    assert [%{name: :paragraph, children: [%{name: :text, text: "larry, moe, curly"}]}] == result
+    assert [%{"name" => "paragraph", "children" => [%{"name" => "text", "text" => "larry, moe, curly"}]}] == result
   end
 
   test "join with single input", context do
@@ -47,7 +47,7 @@ defmodule Greenbar.Tags.JoinTest do
                            "~join var=$stuff~~$item~~end~",
                            %{"stuff" => ["highlander"]})
 
-    assert [%{name: :paragraph, children: [%{name: :text, text: "highlander"}]}] == result
+    assert [%{"name" => "paragraph", "children" => [%{"name" => "text", "text" => "highlander"}]}] == result
   end
 
   test "join with empty input", context do
@@ -67,8 +67,8 @@ defmodule Greenbar.Tags.JoinTest do
                                          ["four", "five", "six"],
                                          ["seven", "eight", "nine"]]})
 
-    assert [%{name: :paragraph, children: [
-                 %{name: :text, text: "one, two, three-four, five, six-seven, eight, nine"}]}] == result
+    assert [%{"name" => "paragraph", "children" => [
+                 %{"name" => "text", "text" => "one, two, three-four, five, six-seven, eight, nine"}]}] == result
   end
 
   test "join inside an each", context do
@@ -87,11 +87,11 @@ defmodule Greenbar.Tags.JoinTest do
                                           %{"name" => "Patrick",
                                             "mech_keyboards" => [%{"name" => "MiniVan"}]}]})
 
-    assert [%{name: :paragraph, children: [%{name: :bold, text: "Name:"}, %{name: :text, text: " Shelton"}, %{name: :newline},
-                                           %{name: :bold, text: "Mech Keyboards:"}, %{name: :text, text: " "}, %{name: :newline},
-                                           %{name: :bold, text: "Name:"}, %{name: :text, text: " Mark"}, %{name: :newline},
-                                           %{name: :bold, text: "Mech Keyboards:"}, %{name: :text, text: " Ergodox"}, %{name: :newline},
-                                           %{name: :bold, text: "Name:"}, %{name: :text, text: " Patrick"}, %{name: :newline},
-                                           %{name: :bold, text: "Mech Keyboards:"}, %{name: :text, text: " MiniVan"}]}] == result
+    assert [%{"name" => "paragraph", "children" => [%{"name" => "bold", "text" => "Name:"}, %{"name" => "text", "text" => " Shelton"}, %{"name" => "newline"},
+                                           %{"name" => "bold", "text" => "Mech Keyboards:"}, %{"name" => "text", "text" => " "}, %{"name" => "newline"},
+                                           %{"name" => "bold", "text" => "Name:"}, %{"name" => "text", "text" => " Mark"}, %{"name" => "newline"},
+                                           %{"name" => "bold", "text" => "Mech Keyboards:"}, %{"name" => "text", "text" => " Ergodox"}, %{"name" => "newline"},
+                                           %{"name" => "bold", "text" => "Name:"}, %{"name" => "text", "text" => " Patrick"}, %{"name" => "newline"},
+                                           %{"name" => "bold", "text" => "Mech Keyboards:"}, %{"name" => "text", "text" => " MiniVan"}]}] == result
   end
 end
