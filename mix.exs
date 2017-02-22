@@ -3,7 +3,7 @@ defmodule Greenbar.Mixfile do
 
   def project do
     [app: :greenbar,
-     version: "1.0.0-beta.3",
+     version: "1.0.0-beta.4",
      elixir: "~> 1.3.1",
      erlc_options: [:debug_info, :warnings_as_errors],
      leex_options: [:warnings_as_errors],
