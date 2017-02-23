@@ -27,8 +27,8 @@ defmodule Greenbar.Mixfile do
   defp deps do
     [
       # Direct dependencies
-      {:piper, github: "operable/piper", branch: "v1.0.0"},
-      {:greenbar_markdown, github: "operable/greenbar_markdown", branch: "v1.0.0"},
+      {:piper, github: "operable/piper", tag: "1.0.0"},
+      {:greenbar_markdown, github: "operable/greenbar_markdown", tag: "1.0.0"},
       {:poison, "~> 2.0"},
       {:table_rex, "~> 0.8"},
 
