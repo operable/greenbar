@@ -3,7 +3,7 @@ defmodule Greenbar.Mixfile do
 
   def project do
     [app: :greenbar,
-     version: "1.0.0-beta.4",
+     version: "1.0.0",
      elixir: "~> 1.3.1",
      erlc_options: [:debug_info, :warnings_as_errors],
      leex_options: [:warnings_as_errors],
@@ -27,8 +27,8 @@ defmodule Greenbar.Mixfile do
   defp deps do
     [
       # Direct dependencies
-      {:piper, github: "operable/piper"},
-      {:greenbar_markdown, github: "operable/greenbar_markdown"},
+      {:piper, github: "operable/piper", branch: "v1.0.0"},
+      {:greenbar_markdown, github: "operable/greenbar_markdown", branch: "v1.0.0"},
       {:poison, "~> 2.0"},
       {:table_rex, "~> 0.8"},
 
