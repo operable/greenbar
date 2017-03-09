@@ -1,0 +1,16 @@
+sudo: required
+
+services:
+  - docker
+
+before_install:
+  - docker build -t operable/greenbar-testing -f Dockerfile.ci .
+
+script:
+  - docker run -it --rm operable/greenbar-testing mix test
+
+#script: mix coveralls.travis
+
+notifications:
+  slack:
+    secure: QMiA2teRX3nxtYueacWInI/zEm69TH2eXYwGB7eLzXoG9AYVtwvUkPuyHGMJyTK5osWIb+ADuQo6I7dv1cgdSqJVj4CwkslwZii+L1Q+xfIr4De0YTDoRu9S/gn1g5T0NfIc1xKBahFwnakjSqAGkT8e86lIaS4fxZIT1VxHdMAceM6aBQTDOX9BAfaeWxCGD3aT3PpohaptqONPjK9pF12RWTRldb2L7YrbGXMH3ul06IJRkaMwdycJyr1kJToDv2w3tcyFMKWNzCe7OAFpATy+Q53UGSiFdE5QTjRbvjxykFQJ7ecQuWNqM/XR7RjFFDPw9rPXx6LzINRIb6j1sqOyL5fzXd35/qsMI51bdvYHsdnVtuvjg7UxDRQmyCEqP4K/f32BHgJYMZAHQ4XDlyiCe+Zq8PwQZXpYQpqhdaeOZqkcxEo/JEqCttiGurgE+48Ulj0uZL7CH0E7uBwCH4qG1LZpmDyxMPgwcLFxC3Lb32C8otR6ocUzZkUQGwWC4rCC23WZGQ6155qkCizmSU+MJHa3dj5XX2oezlhRMwz1cUZHZBZL63Icqi79gQp810IuF2Cvsof2jV/6PnC+2/nTdOU8LvkxquL35jBT/hS1g5X36bkrk9htsnb82bggG0Klw8m5HSKgUCOmVytapS5SkPtK00sLpxNCDysPNoE=

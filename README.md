@@ -1,5 +1,7 @@
 ## Greenbar: The meta-template processor
 
+[![Build Status](https://travis-ci.org/operable/greenbar.svg?branch=master)](https://travis-ci.org/operable/greenbar)
+
 Standard template processors like erb, mustache, and eex return formatted output when they process a template.
 Normally this is just fine as most applications use common formats like HTML or JSON for their outputs.
 
