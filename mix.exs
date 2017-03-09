@@ -9,6 +9,10 @@ defmodule Greenbar.Mixfile do
      leex_options: [:warnings_as_errors],
      elixirc_paths: elixirc_paths(Mix.env),
      start_permanent: Mix.env == :prod,
+     test_coverage: [tool: ExCoveralls],
+     preferred_cli_env: ["coveralls": :test,
+                         "coveralls.html": :test,
+                         "coveralls.travis": :test],
      deps: deps] ++ compile_protocols(Mix.env)
   end
 
@@ -34,6 +38,7 @@ defmodule Greenbar.Mixfile do
 
       # Test and Development
       {:mix_test_watch, "~> 0.2", only: [:dev, :test]},
+      {:excoveralls, "~> 0.6", only: :test}
     ]
   end
 
