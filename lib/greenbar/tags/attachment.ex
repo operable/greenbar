@@ -10,7 +10,7 @@ defmodule Greenbar.Tags.Attachment do
   The following tag attributes are supported:
 
   * `title` -- Attachment title
-  * `title_url` -- Optional title link URL
+  * `title_link` -- Optional title link URL
   * `color` -- Color to be used when rendering attachment (interpretation may vary by provider)
   * `image_url` -- Link to image asset (if any)
   * `author` -- Author name
@@ -106,8 +106,8 @@ defmodule Greenbar.Tags.Attachment do
   defp gen_attributes({"title", value}, {attachment, fields}) do
     {Map.put(attachment, :title, value), fields}
   end
-  defp gen_attributes({"title_url", value}, {attachment, fields}) do
-    {Map.put(attachment, :title_url, value), fields}
+  defp gen_attributes({"title_link", value}, {attachment, fields}) do
+    {Map.put(attachment, :title_link, value), fields}
   end
   defp gen_attributes({"pretext", value}, {attachment, fields}) do
     {Map.put(attachment, :pretext, value), fields}
