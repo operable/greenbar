@@ -42,6 +42,7 @@ defmodule Greenbar.Renderers.SlackRenderer do
     end
     attachment
     |> rename_key("title_url", "title_link")
+    |> rename_key("author", "author_name")
     |> Map.delete("children")
     |> Map.put("text", attachment_text)
     |> Map.put("fallback", attachment_text)
