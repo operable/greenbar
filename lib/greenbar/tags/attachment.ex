@@ -14,8 +14,14 @@ defmodule Greenbar.Tags.Attachment do
   * `color` -- Color to be used when rendering attachment (interpretation may vary by provider)
   * `image_url` -- Link to image asset (if any)
   * `author` -- Author name
+  * `author_icon` -- Author icon. Will only work if `author` is present
+  * `author_link` -- Use this to hyperlink author. Will only work if `author` is present
   * `pretext` -- Preamble text displayed before attachment body
+  * `fallback` -- A plain-text summary of the attachment to show in clients that don't show formatted text  (eg. IRC, mobile notifications)
+  * `thumb_url` -- Display a thumbnail on the right side of the message attachment
   * `footer` -- Brief text that appears as the attachment's footer
+  * `footer_icon` -- Footer icon. Will only work if `footer` is present
+  * `ts` -- Integer value in epoch time to show in `footer`.
 
   Any other attributes will be interpreted as custom fields and included in the attachments' `fields`
   field. Custom fields have the following structure:
@@ -25,6 +31,9 @@ defmodule Greenbar.Tags.Attachment do
     value: <attribute_value>,
     short: false}
   ```
+
+  When an attribute contains "-short" at the end (eg. `priority-short`), the `short` field will be set to `true`.
+  This flag indicates whether the value is short enough to be displayed side-by-side with other values.
 
   ## Example
 
@@ -112,23 +121,52 @@ defmodule Greenbar.Tags.Attachment do
   defp gen_attributes({"pretext", value}, {attachment, fields}) do
     {Map.put(attachment, :pretext, value), fields}
   end
+  defp gen_attributes({"fallback", value}, {attachment, fields}) do
+    {Map.put(attachment, :fallback, value), fields}
+  end
   defp gen_attributes({"color", value}, {attachment, fields}) do
     {Map.put(attachment, :color, value), fields}
   end
   defp gen_attributes({"image_url", value}, {attachment, fields}) do
     {Map.put(attachment, :image_url, value), fields}
   end
+  defp gen_attributes({"thumb_url", value}, {attachment, fields}) do
+    {Map.put(attachment, :thumb_url, value), fields}
+  end
   defp gen_attributes({"author", value}, {attachment, fields}) do
     {Map.put(attachment, :author, value), fields}
+  end
+  defp gen_attributes({"author_link", value}, {attachment, fields}) do
+    {Map.put(attachment, :author_link, value), fields}
+  end
+  defp gen_attributes({"author_icon", value}, {attachment, fields}) do
+    {Map.put(attachment, :author_icon, value), fields}
   end
   defp gen_attributes({"footer", value}, {attachment, fields}) do
     {Map.put(attachment, :footer, value), fields}
   end
+  defp gen_attributes({"footer_icon", value}, {attachment, fields}) do
+    {Map.put(attachment, :footer_icon, value), fields}
+  end
+  defp gen_attributes({"ts", value}, {attachment, fields}) do
+    {Map.put(attachment, :ts, value), fields}
+  end
   defp gen_attributes({key, value}, {attachment, fields}) do
-    field = %{title: key,
-              value: value,
-              short: false}
+    field = generate_field(key, value)
+
     {attachment, [field|fields]}
+  end
+  defp generate_field(key, value) do
+    field = %{value: value}
+
+    delimiter = "-short"
+    short = String.ends_with?(key, delimiter)
+    key = if short, do: String.trim_trailing(key, delimiter), else: key
+
+    field = Map.put(field, :title, key)
+    field = Map.put(field, :short, short)
+
+    field
   end
 
 end

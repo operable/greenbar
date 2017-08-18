@@ -105,7 +105,9 @@ Displaying _~$thing~_
   test "attachment attributes", context do
     result = eval_template(context.engine,
                            "attachment_attrs",
-                           "~attachment title=title title_url=title_url color=blue image_url=image_url author=author pretext=pretext~body~end~",
+                           "~attachment title=title title_url=title_url color=blue image_url=image_url\
+                           author=author fallback=fallback thumb_url=thumb_url pretext=pretext ts=ts\
+                           author_link=author_link author_icon=author_icon footer_icon=footer_icon~body~end~",
                            %{})
 
     assert [%{name: :attachment,
@@ -114,7 +116,13 @@ Displaying _~$thing~_
               color: "blue",
               image_url: "image_url",
               author: "author",
+              fallback: "fallback",
+              thumb_url: "thumb_url",
               pretext: "pretext",
+              ts: "ts",
+              author_link: "author_link",
+              author_icon: "author_icon",
+              footer_icon: "footer_icon",
               fields: [],
               children: [
                 %{name: :paragraph,
@@ -125,12 +133,13 @@ Displaying _~$thing~_
   test "attachment fields", context do
     [attachment|_] = eval_template(context.engine,
                                    "attachment_fields",
-                                   "~attachment title=title field1=Foo field2=\"Bar Baz\"~body~end~",
+                                   "~attachment title=title field1=Foo field2=\"Bar Baz\" field3-short=test~body~end~",
                                    %{})
 
     fields = Enum.sort(attachment.fields)
     expected = Enum.sort([%{title: "field1", value: "Foo", short: false},
-                          %{title: "field2", value: "Bar Baz", short: false}])
+                          %{title: "field2", value: "Bar Baz", short: false},
+                          %{title: "field3", value: "test", short: true}])
 
     assert fields == expected
   end
