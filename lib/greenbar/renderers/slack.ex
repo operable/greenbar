@@ -162,7 +162,7 @@ defmodule Greenbar.Renderers.SlackRenderer do
     #{separator_row}
     | #{Enum.join(headers, " | ")} |
     #{separator_row}
-    """ |> String.strip
+    """ |> String.trim()
   end
 
   defp to_hyphens(name),
