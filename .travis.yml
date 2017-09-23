@@ -1,14 +1,14 @@
-sudo: required
-
-services:
-  - docker
+language: elixir
+elixir:
+  - 1.5.1
+otp_release:
+  - 20.0
 
 before_install:
-  - docker build -t operable/greenbar-testing -f Dockerfile.ci .
-
-# Need the job ID in order to upload the Coveralls data
+  - mix do local.hex --force, local.rebar --force
+  - MIX_ENV=test mix deps.get
 script:
-  - docker run -it --rm --env="TRAVIS_JOB_ID=${TRAVIS_JOB_ID}" operable/greenbar-testing mix coveralls.travis
+  - "MIX_ENV=test mix coveralls.travis"
 
 notifications:
   slack:

@@ -168,7 +168,7 @@ defmodule Greenbar.Test.SlackRendererTest do
     | Hello World |
     +-------------+
     ```
-    """ |> String.strip
+    """ |> String.trim()
 
     assert expected == rendered
   end

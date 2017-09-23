@@ -4,7 +4,7 @@ defmodule Greenbar.Mixfile do
   def project do
     [app: :greenbar,
      version: "1.1.0",
-     elixir: "~> 1.3.1",
+     elixir: "~> 1.5.1",
      erlc_options: [:debug_info, :warnings_as_errors],
      leex_options: [:warnings_as_errors],
      elixirc_paths: elixirc_paths(Mix.env),
@@ -13,7 +13,7 @@ defmodule Greenbar.Mixfile do
      preferred_cli_env: ["coveralls": :test,
                          "coveralls.html": :test,
                          "coveralls.travis": :test],
-     deps: deps] ++ compile_protocols(Mix.env)
+     deps: deps()] ++ compile_protocols(Mix.env)
   end
 
   def application do
@@ -31,9 +31,9 @@ defmodule Greenbar.Mixfile do
   defp deps do
     [
       # Direct dependencies
-      {:piper, github: "operable/piper"},
+      {:piper, github: "davejlong/piper", branch: "elixir-upgrade"},
       {:greenbar_markdown, github: "operable/greenbar_markdown"},
-      {:poison, "~> 2.0"},
+      {:poison, "~> 3.1"},
       {:table_rex, "~> 0.8"},
 
       # Test and Development
