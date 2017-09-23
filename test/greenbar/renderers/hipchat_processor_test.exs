@@ -164,7 +164,7 @@ defmodule Greenbar.Test.Test.HipChatRendererTest do
     | Hello World |
     +-------------+
     </pre>
-    """ |> String.strip
+    """ |> String.trim()
 
     assert expected == rendered
   end
